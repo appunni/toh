@@ -8,7 +8,6 @@ export class UIRenderer {
   private onDifficultyChange: (difficulty: number) => void;
   private draggedDisk: Disk | null = null;
   private draggedFromTower: number | null = null;
-  private isInfoModalVisible: boolean = false; // Track modal state
 
   constructor(
     container: HTMLElement,
@@ -284,7 +283,6 @@ export class UIRenderer {
     
     if (infoBtn && infoModal) {
       infoBtn.addEventListener('click', () => {
-        this.isInfoModalVisible = true;
         infoModal.classList.remove('hidden');
         infoModal.classList.add('flex');
       });
@@ -292,7 +290,6 @@ export class UIRenderer {
     
     if (closeInfoBtn && infoModal) {
       closeInfoBtn.addEventListener('click', () => {
-        this.isInfoModalVisible = false;
         infoModal.classList.add('hidden');
         infoModal.classList.remove('flex');
       });
@@ -302,7 +299,6 @@ export class UIRenderer {
     if (infoModal) {
       infoModal.addEventListener('click', (e) => {
         if (e.target === infoModal) {
-          this.isInfoModalVisible = false;
           infoModal.classList.add('hidden');
           infoModal.classList.remove('flex');
         }
