@@ -1,0 +1,50 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with sunset gradient -->
+  <defs>
+    <radialGradient id="sunset" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#fbbf24" />
+      <stop offset="40%" style="stop-color:#f97316" />
+      <stop offset="80%" style="stop-color:#dc2626" />
+      <stop offset="100%" style="stop-color:#b91c1c" />
+    </radialGradient>
+    <linearGradient id="tower" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d97706" />
+      <stop offset="100%" style="stop-color:#b45309" />
+    </linearGradient>
+    <linearGradient id="disk1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444" />
+      <stop offset="100%" style="stop-color:#dc2626" />
+    </linearGradient>
+    <linearGradient id="disk2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981" />
+      <stop offset="100%" style="stop-color:#059669" />
+    </linearGradient>
+    <linearGradient id="disk3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6" />
+      <stop offset="100%" style="stop-color:#2563eb" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#sunset)" rx="80"/>
+  
+  <!-- Base platform -->
+  <rect x="50" y="400" width="412" height="40" fill="#92400e" rx="8"/>
+  
+  <!-- Tower poles -->
+  <rect x="130" y="200" width="16" height="200" fill="url(#tower)" rx="8"/>
+  <rect x="248" y="200" width="16" height="200" fill="url(#tower)" rx="8"/>
+  <rect x="366" y="200" width="16" height="200" fill="url(#tower)" rx="8"/>
+  
+  <!-- Disks on first tower -->
+  <!-- Large disk -->
+  <rect x="100" y="360" width="76" height="20" fill="url(#disk1)" rx="10"/>
+  <!-- Medium disk -->
+  <rect x="110" y="335" width="56" height="20" fill="url(#disk2)" rx="10"/>
+  <!-- Small disk -->
+  <rect x="120" y="310" width="36" height="20" fill="url(#disk3)" rx="10"/>
+  
+  <!-- Game title -->
+  <text x="256" y="120" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5)">Hanoi</text>
+  <text x="256" y="160" font-family="Arial, sans-serif" font-size="24" font-weight="normal" text-anchor="middle" fill="rgba(255,255,255,0.9)" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5)">Puzzle</text>
+</svg>
