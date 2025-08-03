@@ -172,8 +172,8 @@ export class UIRenderer {
                 <span class="text-xl">🎮</span>
                 <div>
                   <strong class="text-white">Controls:</strong><br>
-                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">• <strong class="text-yellow-400">Click:</strong> Select a disk, then click destination tower<br>
-                  • <strong class="text-emerald-400">Drag & Drop:</strong> Drag disks directly to towers</span>
+                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">• <strong class="text-emerald-400">Drag & Drop:</strong> Drag disks directly to towers<br>
+                  • <strong class="text-blue-400">Visual Feedback:</strong> Hover indicators show valid/invalid drop zones</span>
                 </div>
               </div>
               
@@ -377,12 +377,10 @@ export class UIRenderer {
   }
 
   private attachGameEvents(): void {
-    // Disk click events
+    // Disk drag events (only for top disks)
     document.querySelectorAll('.disk').forEach(diskEl => {
       const isTop = diskEl.getAttribute('data-is-top') === 'true';
       if (isTop) {
-        diskEl.addEventListener('click', this.handleDiskClick.bind(this));
-        
         // Desktop drag & drop
         diskEl.addEventListener('dragstart', this.handleDragStart.bind(this));
         diskEl.addEventListener('dragend', this.handleDragEnd.bind(this));
@@ -391,44 +389,11 @@ export class UIRenderer {
 
     // Tower drop events
     document.querySelectorAll('.tower').forEach(towerEl => {
-      towerEl.addEventListener('click', this.handleTowerClick.bind(this));
       towerEl.addEventListener('dragover', this.handleDragOver.bind(this));
       towerEl.addEventListener('drop', this.handleDrop.bind(this));
       towerEl.addEventListener('dragenter', this.handleDragEnter.bind(this));
       towerEl.addEventListener('dragleave', this.handleDragLeave.bind(this));
     });
-  }
-
-  private handleDiskClick(event: Event): void {
-    const diskEl = event.target as HTMLElement;
-    const diskId = parseInt(diskEl.getAttribute('data-disk-id') || '0');
-    const towerId = parseInt(diskEl.getAttribute('data-tower-id') || '0');
-    
-    if (this.gameState.selectedDisk) {
-      // Try to move the selected disk to this tower
-      const fromTower = this.gameState.towers.findIndex(t => 
-        t.disks.some(d => d.id === this.gameState.selectedDisk!.id)
-      );
-      this.onDiskMove(fromTower, towerId);
-    } else {
-      // Select this disk
-      const disk = this.gameState.towers[towerId].disks.find(d => d.id === diskId);
-      if (disk) {
-        this.gameState.selectedDisk = disk;
-        diskEl.classList.add('ring-4', 'ring-yellow-400');
-      }
-    }
-  }
-
-  private handleTowerClick(event: Event): void {
-    if (this.gameState.selectedDisk) {
-      const towerEl = event.currentTarget as HTMLElement;
-      const towerId = parseInt(towerEl.getAttribute('data-tower-id') || '0');
-      const fromTower = this.gameState.towers.findIndex(t => 
-        t.disks.some(d => d.id === this.gameState.selectedDisk!.id)
-      );
-      this.onDiskMove(fromTower, towerId);
-    }
   }
 
   private handleDragStart(event: Event): void {

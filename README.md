@@ -1,19 +1,21 @@
 # 🏗️ Tower of Hanoi
 
-A beautiful, modern implementation of the classic Tower of Hanoi puzzle game built with **Vite**, **TypeScript**, and **Tailwind CSS**.
+A beautiful, modern implementation of the classic Tower of Hanoi puzzle game built with **Vite**, **TypeScript**, and **Tailwind CSS v4**. Features a desktop-optimized experience with comprehensive security hardening and PWA capabilities.
 
-![Tower of Hanoi Game](https://img.shields.io/badge/Game-Tower%20of%20Hanoi-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue) ![Vite](https://img.shields.io/badge/Vite-5.0.8-646CFF) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.0.0--alpha.26-38B2AC)
+![Tower of Hanoi Game](https://img.shields.io/badge/Game-Tower%20of%20Hanoi-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue) ![Vite](https://img.shields.io/badge/Vite-5.0.8-646CFF) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.0.0--alpha.26-38B2AC) ![Security](https://img.shields.io/badge/Security-Hardened-green) ![PWA](https://img.shields.io/badge/PWA-Ready-blue)
 
 ## ✨ Features
 
-- 🎮 **Interactive Gameplay**: Click-to-select or drag-and-drop mechanics
+- 🖥️ **Desktop-Optimized**: Clean, focused desktop experience with optimized interactions
+- 🎮 **Interactive Gameplay**: Intuitive drag-and-drop mechanics
 - 🎨 **Modern Design**: Glassmorphism UI with beautiful gradients and animations
-- 📱 **Responsive**: Optimized for both desktop and mobile devices
 - 🎯 **Multiple Difficulty Levels**: Easy (3 disks), Medium (4 disks), Hard (5 disks), Expert (6 disks)
 - 📊 **Performance Tracking**: Move counter and optimal solution comparison
 - ℹ️ **Tutorial System**: Built-in help modal with game rules and controls
 - 🔄 **Reset Functionality**: Start over anytime with the reset button
 - 🏆 **Achievement System**: Performance ratings (Perfect, Excellent, Good)
+- 🔒 **Security Hardened**: XSS prevention, input validation, and CSP headers
+- 📱 **PWA Ready**: Progressive Web App with service worker and offline support
 
 ## 🚀 Quick Start
 
@@ -41,7 +43,7 @@ A beautiful, modern implementation of the classic Tower of Hanoi puzzle game bui
    ```
 
 4. **Open your browser**
-   Navigate to `http://localhost:3000` to play the game!
+   Navigate to `http://localhost:3000/toh/` to play the game!
 
 ## 🎯 How to Play
 
@@ -53,9 +55,9 @@ Move all disks from the **Source** tower to the **Destination** tower.
 - ✅ Only the top disk can be moved
 - ❌ Never place a larger disk on top of a smaller one
 
-### Controls
-- **Click**: Select a disk, then click the destination tower
-- **Drag & Drop**: Drag disks directly to towers
+### Controls (Desktop Optimized)
+- **Drag & Drop**: Drag disks directly to towers with visual feedback
+- **Mouse Hover**: Visual indicators show valid/invalid drop zones
 
 ### Challenge
 Try to complete the puzzle in the minimum number of moves!
@@ -64,7 +66,9 @@ Try to complete the puzzle in the minimum number of moves!
 
 - **[Vite](https://vitejs.dev/)** - Fast build tool and development server
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[Tailwind CSS v4](https://tailwindcss.com/)** - Next-generation utility-first CSS framework
+- **PWA Features** - Service worker, offline support, and app installation
+- **Security Hardened** - XSS prevention, CSP headers, and input validation
 - **Vanilla JavaScript** - No framework dependencies for core game logic
 
 ## 📁 Project Structure
@@ -72,84 +76,76 @@ Try to complete the puzzle in the minimum number of moves!
 ```
 toh/
 ├── src/
-│   ├── TowerOfHanoi.ts      # Core game logic
-│   ├── UIRenderer.ts        # UI rendering and interactions
-│   ├── main.ts             # Application entry point
-│   └── style.css           # Additional styling
-├── public/                 # Static assets
-├── index.html             # Main HTML file
+│   ├── TowerOfHanoi.ts      # Core game logic and state management
+│   ├── UIRenderer.ts        # UI rendering, events, and security
+│   ├── main.ts             # Application entry point and PWA setup
+│   └── style.css           # Additional custom styling
+├── public/                 # Static assets and PWA files
+│   ├── icons/             # App icons for PWA
+│   ├── manifest.json      # PWA manifest
+│   └── sw.js             # Service worker for offline support
+├── index.html             # Main HTML file with security headers
 ├── package.json           # Dependencies and scripts
-├── tailwind.config.js     # Tailwind configuration
 ├── tsconfig.json          # TypeScript configuration
-└── vite.config.ts         # Vite configuration
+└── vite.config.ts         # Vite configuration with Tailwind CSS v4
 ```
 
 ## 🎨 Design Features
 
 - **Glassmorphism**: Modern translucent design with backdrop blur effects
 - **Smooth Animations**: Hover effects, transitions, and modal animations
-- **Responsive Layout**: Mobile-first design that works on all screen sizes
+- **Desktop-First**: Optimized for desktop interaction patterns
 - **Consistent Theme**: Unified color palette and design language
 - **Accessibility**: Proper contrast ratios and interactive feedback
+- **Component Architecture**: Modular, maintainable code structure
 
-## 📱 Responsive Design
+## 🔒 Security Features
 
-The game is fully responsive and optimized for:
-- 📱 Mobile phones (320px+)
-- 📟 Tablets (768px+)
-- 💻 Desktop computers (1024px+)
+- **XSS Prevention**: Input sanitization and HTML escaping
+- **Content Security Policy**: Comprehensive CSP headers
+- **Input Validation**: Secure URL parameter and localStorage handling
+- **Service Worker Security**: Origin validation and request restrictions
+- **Security Headers**: X-Frame-Options, X-XSS-Protection, and more
 
-## 🔧 Development
+## 📱 PWA Features
 
-### Available Scripts
+- **Offline Support**: Service worker for offline gameplay
+- **App Installation**: Install as native app on desktop/mobile
+- **App Icons**: Complete icon set for all platforms
+- **Manifest**: Full PWA manifest with proper metadata
+- **Caching Strategy**: Optimized asset caching for performance
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run TypeScript compiler check
+## 🚀 Performance Optimizations
 
-### Building for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist/` directory, ready for deployment.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- **Code Splitting**: Optimized bundle size with modern build tools
+- **Tree Shaking**: Unused code elimination
+- **Asset Optimization**: Compressed and optimized static assets
+- **DOM Optimization**: Efficient rendering and event handling
+- **TypeScript**: Compile-time optimizations and type safety
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🎯 Game Rules Reference
+## 🏗️ Development
 
-### Optimal Solutions
-- **3 disks**: 7 moves
-- **4 disks**: 15 moves  
-- **5 disks**: 31 moves
-- **6 disks**: 63 moves
+### Available Scripts
 
-### Performance Ratings
-- **Perfect**: Solved in optimal moves
-- **Excellent**: Within 150% of optimal
-- **Good**: Within 200% of optimal
-- **Keep practicing**: More than 200% of optimal
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production with TypeScript compilation
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run TypeScript type checking
 
-## 🌟 Acknowledgments
+### Code Quality Features
 
-- Classic Tower of Hanoi puzzle by Édouard Lucas (1883)
-- Modern web technologies and open-source community
-- Tailwind CSS for the amazing utility-first approach
+- **TypeScript**: Full type safety and compile-time error checking
+- **Optimized Constants**: Centralized configuration for easy maintenance
+- **Template Separation**: Modular UI rendering with focused methods
+- **Event Optimization**: Efficient DOM event handling and caching
+- **Security Best Practices**: Input validation and XSS prevention
 
 ---
 
 **Enjoy playing the Tower of Hanoi! 🎮**
+
+*Desktop-optimized • Security-hardened • PWA-ready*
