@@ -13,6 +13,7 @@ export class UIRenderer {
   private touchDisk: HTMLElement | null = null;
   private touchStartPos: { x: number; y: number } | null = null;
   private isTouchDevice: boolean = false;
+  private orientationSuggestionShown: boolean = false;
 
   constructor(
     container: HTMLElement,
@@ -37,6 +38,88 @@ export class UIRenderer {
                         window.matchMedia('(pointer: coarse)').matches;
     
     console.log('📱 Touch device detected:', this.isTouchDevice);
+    
+    // Handle orientation changes
+    this.setupOrientationHandling();
+  }
+
+  private setupOrientationHandling(): void {
+    if (this.isTouchDevice) {
+      // Check initial orientation
+      this.checkOrientation();
+      
+      // Listen for orientation changes
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => this.checkOrientation(), 100);
+      });
+      
+      // Also listen for resize events (covers more devices)
+      window.addEventListener('resize', () => {
+        setTimeout(() => this.checkOrientation(), 100);
+      });
+    }
+  }
+
+  private checkOrientation(): void {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile && isPortrait && !this.orientationSuggestionShown) {
+      this.showOrientationSuggestion();
+    }
+  }
+
+  private showOrientationSuggestion(): void {
+    // Only show once per session
+    if (this.orientationSuggestionShown) return;
+    
+    const suggestion = document.createElement('div');
+    suggestion.id = 'orientation-suggestion';
+    suggestion.className = 'fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-[9999] text-white text-center p-6';
+    suggestion.innerHTML = `
+      <div class="text-6xl mb-6 animate-bounce">📱</div>
+      <h2 class="text-2xl font-bold mb-4">Better Experience Available!</h2>
+      <p class="text-lg mb-6 max-w-sm">
+        For the best Tower of Hanoi experience, try rotating your device to landscape mode.
+      </p>
+      <div class="flex flex-col gap-3">
+        <button id="continue-portrait" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200">
+          Continue in Portrait
+        </button>
+        <button id="dismiss-suggestion" class="text-white/70 text-sm underline">
+          Don't show again
+        </button>
+      </div>
+    `;
+    
+    document.body.appendChild(suggestion);
+    
+    // Handle user choices
+    document.getElementById('continue-portrait')?.addEventListener('click', () => {
+      suggestion.remove();
+    });
+    
+    document.getElementById('dismiss-suggestion')?.addEventListener('click', () => {
+      this.orientationSuggestionShown = true;
+      localStorage.setItem('hanoi-orientation-dismissed', 'true');
+      suggestion.remove();
+    });
+    
+    // Auto-dismiss if they rotate to landscape
+    const checkAndDismiss = () => {
+      if (window.innerWidth > window.innerHeight) {
+        suggestion.remove();
+      }
+    };
+    
+    window.addEventListener('orientationchange', checkAndDismiss);
+    window.addEventListener('resize', checkAndDismiss);
+    
+    // Check if user previously dismissed
+    if (localStorage.getItem('hanoi-orientation-dismissed') === 'true') {
+      this.orientationSuggestionShown = true;
+      suggestion.remove();
+    }
   }
 
   public render(gameState: GameState, optimalMoves: number): void {
@@ -46,11 +129,16 @@ export class UIRenderer {
     const existingModal = document.getElementById('info-modal');
     const wasModalVisible = existingModal && !existingModal.classList.contains('hidden');
     
+    // Detect orientation for CSS classes
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isMobile = window.innerWidth <= 768;
+    const portraitMode = isMobile && isPortrait;
+    
     this.container.innerHTML = `
       <div class="bg-gradient-to-br from-orange-900 via-red-900 to-pink-800 min-h-screen flex flex-col">
         <div class="max-w-6xl mx-auto p-2 md:p-4 flex-1 flex flex-col">
           <!-- Compact Header Bar -->
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 mb-4 border border-white/20 shadow-lg">
+          <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 mb-4 border border-white/20 shadow-lg ${portraitMode ? 'mobile-portrait-header' : ''}">
             <div class="flex items-center justify-between gap-3 md:gap-6">
               <!-- Title -->
               <h1 class="text-lg md:text-2xl font-bold text-white tracking-wide">
@@ -68,13 +156,13 @@ export class UIRenderer {
               <!-- Stats -->
               <div class="flex items-center gap-3 md:gap-4">
                 <div class="text-center">
-                  <div class="text-sm md:text-base font-bold text-yellow-400">${gameState.moves}</div>
-                  <div class="text-xs text-white/80">Moves</div>
+                  <div class="text-sm md:text-base font-bold text-yellow-400 ${portraitMode ? 'stats-number' : ''}">${gameState.moves}</div>
+                  <div class="text-xs text-white/80 ${portraitMode ? 'stats-text' : ''}">Moves</div>
                 </div>
                 <div class="w-px h-8 bg-white/30"></div>
                 <div class="text-center">
-                  <div class="text-sm md:text-base font-bold text-emerald-400">${optimalMoves}</div>
-                  <div class="text-xs text-white/80">Optimal</div>
+                  <div class="text-sm md:text-base font-bold text-emerald-400 ${portraitMode ? 'stats-number' : ''}">${optimalMoves}</div>
+                  <div class="text-xs text-white/80 ${portraitMode ? 'stats-text' : ''}">Optimal</div>
                 </div>
               </div>
               
@@ -91,9 +179,9 @@ export class UIRenderer {
           </div>
 
           <!-- Game Board -->
-          <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-6 border border-white/10 shadow-2xl flex-1 flex flex-col">
-            <div class="grid grid-cols-3 gap-3 md:gap-6 flex-1">
-              ${gameState.towers.map((tower, index) => this.renderTower(tower, index)).join('')}
+          <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-6 border border-white/10 shadow-2xl flex-1 flex flex-col ${portraitMode ? 'portrait-game-board' : ''}">
+            <div class="grid grid-cols-3 gap-3 md:gap-6 flex-1 ${portraitMode ? 'portrait-tower-grid' : ''}">
+              ${gameState.towers.map((tower, index) => this.renderTower(tower, index, portraitMode)).join('')}
             </div>
           </div>
         </div>
@@ -152,42 +240,57 @@ export class UIRenderer {
     this.attachEventListeners();
   }
 
-  private renderTower(tower: Tower, index: number): string {
+  private renderTower(tower: Tower, index: number, isPortrait: boolean = false): string {
     const towerLabels = ['Source', 'Auxiliary', 'Destination'];
     const towerIcons = ['🏁', '⚡', '🎯'];
+    
+    const portraitClasses = isPortrait ? {
+      label: 'portrait-tower-label',
+      base: 'portrait-tower-base', 
+      top: 'portrait-tower-top'
+    } : {
+      label: '',
+      base: '',
+      top: ''
+    };
     
     return `
       <div class="text-center h-full flex flex-col">
         <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 shadow-lg h-full flex flex-col">
-          <h3 class="text-white text-sm md:text-lg font-bold mb-2 flex items-center justify-center gap-1">
-            <span class="text-sm md:text-lg">${towerIcons[index]}</span>
+          <h3 class="text-white text-sm md:text-lg font-bold mb-2 flex items-center justify-center gap-1 ${portraitClasses.label}">
+            <span class="text-sm md:text-lg ${isPortrait ? 'portrait-tower-top' : ''}">${towerIcons[index]}</span>
             ${towerLabels[index]}
           </h3>
           <div class="relative flex-1 flex flex-col items-center justify-end">
             <!-- Tower pole -->
             <div class="tower w-4 md:w-6 h-56 md:h-80 relative bg-gradient-to-t from-amber-700 to-amber-600 rounded-full shadow-lg" data-tower-id="${index}">
               <!-- Decorative top -->
-              <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 md:w-8 md:h-8 bg-amber-500 rounded-full shadow-md border-2 border-amber-400"></div>
+              <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 md:w-8 md:h-8 bg-amber-500 rounded-full shadow-md border-2 border-amber-400 ${portraitClasses.top}"></div>
               <!-- Disks container -->
               <div class="disk-container">
-                ${tower.disks.map((disk, diskIndex) => this.renderDisk(disk, index, diskIndex)).join('')}
+                ${tower.disks.map((disk, diskIndex) => this.renderDisk(disk, index, diskIndex, isPortrait)).join('')}
               </div>
             </div>
             <!-- Enhanced Base -->
-            <div class="w-32 md:w-48 h-6 md:h-8 bg-gradient-to-t from-gray-800 to-gray-700 rounded-2xl mt-2 shadow-xl border-2 border-gray-600"></div>
+            <div class="w-32 md:w-48 h-6 md:h-8 bg-gradient-to-t from-gray-800 to-gray-700 rounded-2xl mt-2 shadow-xl border-2 border-gray-600 ${portraitClasses.base}"></div>
           </div>
         </div>
       </div>
     `;
   }
 
-  private renderDisk(disk: Disk, towerId: number, position: number): string {
-    // Responsive disk sizing
-    const baseWidth = window.innerWidth < 768 ? 40 : 60;
-    const sizeMultiplier = window.innerWidth < 768 ? 12 : 20;
+  private renderDisk(disk: Disk, towerId: number, position: number, isPortrait: boolean = false): string {
+    // Portrait-specific sizing
+    const baseWidth = isPortrait ? 20 : (window.innerWidth < 768 ? 40 : 60);
+    const sizeMultiplier = isPortrait ? 8 : (window.innerWidth < 768 ? 12 : 20);
     const width = baseWidth + (disk.size * sizeMultiplier);
-    const height = window.innerWidth < 768 ? 18 : 24;
-    const bottom = position * (window.innerWidth < 768 ? 24 : 30) + (window.innerWidth < 768 ? 14 : 16);
+    const height = isPortrait ? 12 : (window.innerWidth < 768 ? 18 : 24);
+    
+    // Fixed stacking calculation - each disk should be positioned exactly on top of the previous one
+    const diskSpacing = isPortrait ? 14 : (window.innerWidth < 768 ? 20 : 26); // Height + small gap
+    const baseOffset = isPortrait ? 8 : (window.innerWidth < 768 ? 14 : 16);
+    const bottom = position * diskSpacing + baseOffset;
+    
     const isTopDisk = position === this.gameState.towers[towerId].disks.length - 1;
     
     // Enhanced visual styling
@@ -207,6 +310,7 @@ export class UIRenderer {
           transform: translateX(-50%);
           font-size: ${window.innerWidth < 768 ? '14px' : '18px'};
           text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+          z-index: ${position + 1}; /* Higher position = higher z-index */
         "
         data-disk-id="${disk.id}"
         data-disk-size="${disk.size}"

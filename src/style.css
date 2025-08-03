@@ -105,7 +105,8 @@ select {
   .disk {
     font-size: 14px;
     border-radius: 8px;
-    min-height: 40px; /* Larger touch targets */
+    min-height: 18px; /* Ensure consistent height */
+    box-sizing: border-box; /* Include borders in size calculation */
   }
   
   .tower {
@@ -127,6 +128,86 @@ select {
   .disk.dragging {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
     transform: translateX(-50%) translateY(-10px) scale(1.05) !important;
+  }
+}
+
+/* Portrait Mode Optimizations */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  /* Super compact layout for portrait */
+  .mobile-portrait-header {
+    padding: 6px 8px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .mobile-portrait-header h1 {
+    font-size: 16px !important;
+  }
+  
+  .mobile-portrait-header select {
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+  }
+  
+  .mobile-portrait-header button {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+  }
+  
+  .mobile-portrait-header .stats-text {
+    font-size: 10px !important;
+  }
+  
+  .mobile-portrait-header .stats-number {
+    font-size: 12px !important;
+  }
+  
+  /* Much shorter towers for portrait */
+  .tower {
+    height: 140px !important; /* Dramatically reduced */
+    width: 10px !important;
+  }
+  
+  /* Tiny disks for portrait */
+  .disk {
+    font-size: 9px !important;
+    min-height: 12px !important; /* Match the height in renderDisk */
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Minimal spacing */
+  .portrait-tower-grid {
+    gap: 4px !important;
+  }
+  
+  /* Compact tower labels */
+  .portrait-tower-label {
+    font-size: 10px !important;
+    margin-bottom: 2px !important;
+  }
+  
+  /* Tiny tower bases and tops */
+  .portrait-tower-base {
+    width: 60px !important;
+    height: 12px !important;
+  }
+  
+  .portrait-tower-top {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  
+  /* Game board adjustments */
+  .portrait-game-board {
+    padding: 8px !important;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .tower {
+    height: 180px !important;
   }
 }
 
