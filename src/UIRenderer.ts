@@ -101,7 +101,7 @@ export class UIRenderer {
     
     document.getElementById('dismiss-suggestion')?.addEventListener('click', () => {
       this.orientationSuggestionShown = true;
-      localStorage.setItem('hanoi-orientation-dismissed', 'true');
+      this.setSecureLocalStorage('hanoi-orientation-dismissed', 'true');
       suggestion.remove();
     });
     
@@ -116,7 +116,7 @@ export class UIRenderer {
     window.addEventListener('resize', checkAndDismiss);
     
     // Check if user previously dismissed
-    if (localStorage.getItem('hanoi-orientation-dismissed') === 'true') {
+    if (this.getSecureLocalStorage('hanoi-orientation-dismissed') === 'true') {
       this.orientationSuggestionShown = true;
       suggestion.remove();
     }
@@ -156,12 +156,12 @@ export class UIRenderer {
               <!-- Stats -->
               <div class="flex items-center gap-3 md:gap-4">
                 <div class="text-center">
-                  <div class="text-sm md:text-base font-bold text-yellow-400 ${portraitMode ? 'stats-number' : ''}">${gameState.moves}</div>
+                  <div class="text-sm md:text-base font-bold text-yellow-400 ${portraitMode ? 'stats-number' : ''}" data-moves="${gameState.moves}">${this.sanitizeNumber(gameState.moves)}</div>
                   <div class="text-xs text-white/80 ${portraitMode ? 'stats-text' : ''}">Moves</div>
                 </div>
                 <div class="w-px h-8 bg-white/30"></div>
                 <div class="text-center">
-                  <div class="text-sm md:text-base font-bold text-emerald-400 ${portraitMode ? 'stats-number' : ''}">${optimalMoves}</div>
+                  <div class="text-sm md:text-base font-bold text-emerald-400 ${portraitMode ? 'stats-number' : ''}" data-optimal="${optimalMoves}">${this.sanitizeNumber(optimalMoves)}</div>
                   <div class="text-xs text-white/80 ${portraitMode ? 'stats-text' : ''}">Optimal</div>
                 </div>
               </div>
@@ -336,6 +336,59 @@ export class UIRenderer {
     return colorMap[color] || color;
   }
 
+  // Security: Sanitize numbers to prevent XSS
+  private sanitizeNumber(value: number): string {
+    // Ensure the value is actually a number and convert to safe string
+    const num = Number(value);
+    if (isNaN(num) || !isFinite(num)) {
+      return '0'; // Fallback for invalid numbers
+    }
+    return Math.max(0, Math.floor(num)).toString(); // Only positive integers
+  }
+
+  // Security: Sanitize HTML to prevent XSS
+  private sanitizeHTML(str: string): string {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Security: Safe localStorage operations with validation
+  private setSecureLocalStorage(key: string, value: string): void {
+    try {
+      // Validate key format (only allow alphanumeric and dashes)
+      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
+        console.warn('⚠️ Invalid localStorage key format:', key);
+        return;
+      }
+      
+      // Limit value length to prevent storage abuse
+      if (value.length > 1000) {
+        console.warn('⚠️ localStorage value too long:', key);
+        return;
+      }
+      
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.error('❌ Failed to set localStorage:', error);
+    }
+  }
+
+  private getSecureLocalStorage(key: string): string | null {
+    try {
+      // Validate key format
+      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
+        console.warn('⚠️ Invalid localStorage key format:', key);
+        return null;
+      }
+      
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.error('❌ Failed to get localStorage:', error);
+      return null;
+    }
+  }
+
   private renderWinModal(moves: number, optimal: number): string {
     const performance = moves === optimal ? 'Perfect!' : 
                        moves <= optimal * 1.5 ? 'Excellent!' : 
@@ -356,16 +409,16 @@ export class UIRenderer {
             <div class="space-y-4">
               <div class="flex justify-between items-center text-lg">
                 <span class="font-medium text-white/90">Your Moves:</span>
-                <span class="font-bold text-2xl text-yellow-400">${moves}</span>
+                <span class="font-bold text-2xl text-yellow-400">${this.sanitizeNumber(moves)}</span>
               </div>
               <div class="flex justify-between items-center text-lg">
                 <span class="font-medium text-white/90">Optimal Moves:</span>
-                <span class="font-bold text-2xl text-emerald-400">${optimal}</span>
+                <span class="font-bold text-2xl text-emerald-400">${this.sanitizeNumber(optimal)}</span>
               </div>
               <div class="border-t border-white/20 pt-4">
                 <div class="flex justify-between items-center text-xl">
                   <span class="font-medium text-white/90">Performance:</span>
-                  <span class="font-bold ${performanceColor}">${performance}</span>
+                  <span class="font-bold ${performanceColor}">${this.sanitizeHTML(performance)}</span>
                 </div>
               </div>
             </div>

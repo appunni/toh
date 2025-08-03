@@ -1,10 +1,14 @@
 // Tower of Hanoi PWA Service Worker
 // Enables offline functionality and fast loading
+// Security: Strict caching policy with origin validation
 
 const CACHE_NAME = 'hanoi-puzzle-v1.0.0';
 const BASE_PATH = '/toh/';
+const ALLOWED_ORIGINS = [
+  self.location.origin,  // Same origin only
+];
 
-// Assets to cache immediately
+// Assets to cache immediately (Security: Only internal assets)
 const STATIC_ASSETS = [
   `${BASE_PATH}`,
   `${BASE_PATH}index.html`,
@@ -16,6 +20,17 @@ const STATIC_ASSETS = [
 
 // Dynamic assets that will be cached as they're accessed
 const DYNAMIC_CACHE = 'hanoi-dynamic-v1.0.0';
+
+// Security: Validate request origin
+function isValidOrigin(url) {
+  try {
+    const requestOrigin = new URL(url).origin;
+    return ALLOWED_ORIGINS.includes(requestOrigin);
+  } catch (error) {
+    console.error('❌ Invalid URL:', url);
+    return false;
+  }
+}
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -65,8 +80,13 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Only handle requests for our app
-  if (!url.pathname.startsWith(BASE_PATH)) {
+  // Security: Only handle requests for our app and validate origin
+  if (!url.pathname.startsWith(BASE_PATH) || !isValidOrigin(request.url)) {
+    return;
+  }
+  
+  // Security: Only allow GET requests
+  if (request.method !== 'GET') {
     return;
   }
   
@@ -77,6 +97,12 @@ self.addEventListener('fetch', (event) => {
 
 async function handleRequest(request) {
   const url = new URL(request.url);
+  
+  // Security: Additional origin validation
+  if (!isValidOrigin(request.url)) {
+    console.warn('⚠️ Blocked request from invalid origin:', url.origin);
+    return new Response('Forbidden', { status: 403 });
+  }
   
   try {
     // For HTML pages, try network first, then cache

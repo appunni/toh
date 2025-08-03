@@ -161,12 +161,32 @@ class TowerOfHanoiApp {
     const difficulty = urlParams.get('difficulty');
     
     if (difficulty) {
-      const diskCount = parseInt(difficulty, 10);
-      if (diskCount >= 3 && diskCount <= 6) {
+      // Security: Validate and sanitize the difficulty parameter
+      const diskCount = this.validateDifficulty(difficulty);
+      if (diskCount !== null) {
         console.log('🔗 Starting with difficulty from URL:', diskCount);
         this.onDifficultyChange(diskCount);
+      } else {
+        console.warn('⚠️ Invalid difficulty parameter from URL:', difficulty);
       }
     }
+  }
+
+  // Security: Validate difficulty parameter to prevent injection
+  private validateDifficulty(value: string): number | null {
+    // Only allow numbers, reject any other characters
+    if (!/^\d+$/.test(value)) {
+      return null;
+    }
+    
+    const diskCount = parseInt(value, 10);
+    
+    // Ensure it's within valid range
+    if (diskCount >= 3 && diskCount <= 6) {
+      return diskCount;
+    }
+    
+    return null;
   }
 }
 
