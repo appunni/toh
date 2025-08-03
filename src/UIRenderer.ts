@@ -35,7 +35,7 @@ export class UIRenderer {
     const wasModalVisible = existingModal && !existingModal.classList.contains('hidden');
     
     this.container.innerHTML = `
-      <div class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-800 min-h-screen flex flex-col">
+      <div class="bg-gradient-to-br from-orange-900 via-red-900 to-pink-800 min-h-screen flex flex-col">
         <div class="max-w-6xl mx-auto p-2 md:p-4 flex-1 flex flex-col">
           <!-- Compact Header Bar -->
           <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 md:p-4 mb-4 border border-white/20 shadow-lg">
@@ -61,14 +61,14 @@ export class UIRenderer {
                 </div>
                 <div class="w-px h-8 bg-white/30"></div>
                 <div class="text-center">
-                  <div class="text-sm md:text-base font-bold text-blue-400">${optimalMoves}</div>
+                  <div class="text-sm md:text-base font-bold text-emerald-400">${optimalMoves}</div>
                   <div class="text-xs text-white/80">Optimal</div>
                 </div>
               </div>
               
               <!-- Action Buttons -->
               <div class="flex items-center gap-2">
-                <button id="info-btn" class="bg-blue-500/80 hover:bg-blue-500 backdrop-blur-sm text-white w-8 h-8 md:w-10 md:h-10 rounded-lg font-semibold transition-all duration-200 hover:scale-105 border border-blue-400/30 shadow-lg flex items-center justify-center text-sm md:text-base" title="How to Play">
+                <button id="info-btn" class="bg-teal-500/80 hover:bg-teal-500 backdrop-blur-sm text-white w-8 h-8 md:w-10 md:h-10 rounded-lg font-semibold transition-all duration-200 hover:scale-105 border border-teal-400/30 shadow-lg flex items-center justify-center text-sm md:text-base" title="How to Play">
                   ℹ️
                 </button>
                 <button id="reset-btn" class="bg-red-500/80 hover:bg-red-500 backdrop-blur-sm text-white w-8 h-8 md:w-10 md:h-10 rounded-lg font-semibold transition-all duration-200 hover:scale-105 border border-red-400/30 shadow-lg flex items-center justify-center text-sm md:text-base" title="Reset Game">
@@ -117,7 +117,7 @@ export class UIRenderer {
                 <div>
                   <strong class="text-white">Controls:</strong><br>
                   <span class="text-white/80">• <strong class="text-yellow-400">Click:</strong> Select a disk, then click destination tower<br>
-                  • <strong class="text-blue-400">Drag & Drop:</strong> Drag disks directly to towers</span>
+                  • <strong class="text-emerald-400">Drag & Drop:</strong> Drag disks directly to towers</span>
                 </div>
               </div>
               
@@ -130,7 +130,7 @@ export class UIRenderer {
               </div>
             </div>
           </div>
-          <button id="close-info-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg backdrop-blur-sm border border-blue-400/30">
+          <button id="close-info-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg backdrop-blur-sm border border-orange-400/30">
             Got it! 🚀
           </button>
         </div>
@@ -211,10 +211,10 @@ export class UIRenderer {
     // Simple color darkening function
     const colorMap: { [key: string]: string } = {
       '#ef4444': '#dc2626', // red
-      '#3b82f6': '#2563eb', // blue  
+      '#3b82f6': '#059669', // changed blue to teal  
       '#10b981': '#059669', // green
       '#f59e0b': '#d97706', // yellow
-      '#8b5cf6': '#7c3aed', // purple
+      '#8b5cf6': '#ea580c', // changed purple to orange
       '#f97316': '#ea580c'  // orange
     };
     return colorMap[color] || color;
@@ -226,7 +226,7 @@ export class UIRenderer {
                        moves <= optimal * 2 ? 'Good!' : 'Keep practicing!';
     
     const performanceColor = moves === optimal ? 'text-green-400' : 
-                            moves <= optimal * 1.5 ? 'text-blue-400' : 
+                            moves <= optimal * 1.5 ? 'text-emerald-400' : 
                             moves <= optimal * 2 ? 'text-yellow-400' : 'text-orange-400';
     
     return `
@@ -244,7 +244,7 @@ export class UIRenderer {
               </div>
               <div class="flex justify-between items-center text-lg">
                 <span class="font-medium text-white/90">Optimal Moves:</span>
-                <span class="font-bold text-2xl text-blue-400">${optimal}</span>
+                <span class="font-bold text-2xl text-emerald-400">${optimal}</span>
               </div>
               <div class="border-t border-white/20 pt-4">
                 <div class="flex justify-between items-center text-xl">
@@ -255,7 +255,7 @@ export class UIRenderer {
             </div>
           </div>
           
-          <button id="play-again-btn" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg text-lg backdrop-blur-sm border border-blue-400/30">
+          <button id="play-again-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg text-lg backdrop-blur-sm border border-orange-400/30">
             🎮 Play Again
           </button>
         </div>
