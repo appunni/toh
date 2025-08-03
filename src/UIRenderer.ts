@@ -8,6 +8,11 @@ export class UIRenderer {
   private onDifficultyChange: (difficulty: number) => void;
   private draggedDisk: Disk | null = null;
   private draggedFromTower: number | null = null;
+  
+  // Touch handling properties
+  private touchDisk: HTMLElement | null = null;
+  private touchStartPos: { x: number; y: number } | null = null;
+  private isTouchDevice: boolean = false;
 
   constructor(
     container: HTMLElement,
@@ -25,6 +30,13 @@ export class UIRenderer {
       isComplete: false,
       selectedDisk: null
     };
+    
+    // Detect touch device
+    this.isTouchDevice = 'ontouchstart' in window || 
+                        navigator.maxTouchPoints > 0 ||
+                        window.matchMedia('(pointer: coarse)').matches;
+    
+    console.log('📱 Touch device detected:', this.isTouchDevice);
   }
 
   public render(gameState: GameState, optimalMoves: number): void {
@@ -319,8 +331,17 @@ export class UIRenderer {
       const isTop = diskEl.getAttribute('data-is-top') === 'true';
       if (isTop) {
         diskEl.addEventListener('click', this.handleDiskClick.bind(this));
-        diskEl.addEventListener('dragstart', this.handleDragStart.bind(this));
-        diskEl.addEventListener('dragend', this.handleDragEnd.bind(this));
+        
+        // Traditional drag & drop for desktop
+        if (!this.isTouchDevice) {
+          diskEl.addEventListener('dragstart', this.handleDragStart.bind(this));
+          diskEl.addEventListener('dragend', this.handleDragEnd.bind(this));
+        } else {
+          // Touch events for mobile
+          diskEl.addEventListener('touchstart', (e) => this.handleTouchStart(e as TouchEvent), { passive: false });
+          diskEl.addEventListener('touchmove', (e) => this.handleTouchMove(e as TouchEvent), { passive: false });
+          diskEl.addEventListener('touchend', (e) => this.handleTouchEnd(e as TouchEvent), { passive: false });
+        }
       }
     });
 
@@ -423,5 +444,114 @@ export class UIRenderer {
     
     this.draggedDisk = null;
     this.draggedFromTower = null;
+  }
+
+  // Touch Event Handlers for Mobile
+  private handleTouchStart(event: TouchEvent): void {
+    event.preventDefault(); // Prevent scrolling
+    
+    const touch = event.touches[0];
+    const diskEl = event.currentTarget as HTMLElement;
+    
+    this.touchDisk = diskEl;
+    this.touchStartPos = { x: touch.clientX, y: touch.clientY };
+    
+    // Visual feedback
+    diskEl.classList.add('dragging');
+    
+    // Add haptic feedback if available
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+    
+    console.log('🤏 Touch start on disk', diskEl.getAttribute('data-disk-id'));
+  }
+
+  private handleTouchMove(event: TouchEvent): void {
+    if (!this.touchDisk || !this.touchStartPos) return;
+    
+    event.preventDefault(); // Prevent scrolling
+    
+    const touch = event.touches[0];
+    const currentPos = { x: touch.clientX, y: touch.clientY };
+    
+    // Calculate movement threshold (minimum 10px to start drag)
+    const deltaX = Math.abs(currentPos.x - this.touchStartPos.x);
+    const deltaY = Math.abs(currentPos.y - this.touchStartPos.y);
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    if (distance > 10) {
+      // Show visual feedback that we're in drag mode
+      this.touchDisk.style.transform = `translateX(-50%) translateY(-10px) scale(1.05)`;
+      this.touchDisk.style.zIndex = '1000';
+      
+      // Find tower under touch
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const towerEl = elementUnderTouch?.closest('.tower') as HTMLElement;
+      
+      // Clear previous tower states
+      document.querySelectorAll('.tower').forEach(tower => {
+        tower.classList.remove('drag-over', 'invalid-drop');
+      });
+      
+      if (towerEl && this.touchDisk) {
+        const diskId = parseInt(this.touchDisk.getAttribute('data-disk-id') || '0');
+        const fromTowerId = parseInt(this.touchDisk.getAttribute('data-tower-id') || '0');
+        const toTowerId = parseInt(towerEl.getAttribute('data-tower-id') || '0');
+        
+        // Check if move is valid
+        const fromTower = this.gameState.towers[fromTowerId];
+        const toTower = this.gameState.towers[toTowerId];
+        const draggedDisk = fromTower.disks.find(d => d.id === diskId);
+        const topDisk = toTower.disks[toTower.disks.length - 1];
+        
+        if (draggedDisk && (!topDisk || draggedDisk.size < topDisk.size)) {
+          towerEl.classList.add('drag-over');
+        } else {
+          towerEl.classList.add('invalid-drop');
+        }
+      }
+    }
+  }
+
+  private handleTouchEnd(event: TouchEvent): void {
+    if (!this.touchDisk) return;
+    
+    event.preventDefault();
+    
+    const touch = event.changedTouches[0];
+    const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+    const towerEl = elementUnderTouch?.closest('.tower') as HTMLElement;
+    
+    // Reset visual state
+    this.touchDisk.classList.remove('dragging');
+    this.touchDisk.style.transform = '';
+    this.touchDisk.style.zIndex = '';
+    
+    // Clear tower states
+    document.querySelectorAll('.tower').forEach(tower => {
+      tower.classList.remove('drag-over', 'invalid-drop');
+    });
+    
+    // Perform move if dropped on valid tower
+    if (towerEl && this.touchDisk) {
+      const fromTowerId = parseInt(this.touchDisk.getAttribute('data-tower-id') || '0');
+      const toTowerId = parseInt(towerEl.getAttribute('data-tower-id') || '0');
+      
+      if (fromTowerId !== toTowerId) {
+        const success = this.onDiskMove(fromTowerId, toTowerId);
+        
+        // Haptic feedback for result
+        if ('vibrate' in navigator) {
+          navigator.vibrate(success ? [20] : [50, 50, 50]);
+        }
+        
+        console.log('🎯 Touch drop:', success ? 'valid move' : 'invalid move');
+      }
+    }
+    
+    // Reset touch state
+    this.touchDisk = null;
+    this.touchStartPos = null;
   }
 }

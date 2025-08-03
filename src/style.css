@@ -12,6 +12,10 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .disk:hover {
@@ -101,6 +105,7 @@ select {
   .disk {
     font-size: 14px;
     border-radius: 8px;
+    min-height: 40px; /* Larger touch targets */
   }
   
   .tower {
@@ -111,6 +116,43 @@ select {
   button, select {
     font-size: 14px;
     padding: 12px 16px;
+    min-height: 44px; /* iOS recommended touch target size */
+  }
+  
+  /* Enhanced touch feedback */
+  .disk:active {
+    transform: translateX(-50%) scale(1.02);
+  }
+  
+  .disk.dragging {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    transform: translateX(-50%) translateY(-10px) scale(1.05) !important;
+  }
+}
+
+/* Touch-specific enhancements */
+@media (pointer: coarse) {
+  .disk {
+    min-height: 44px; /* Larger touch targets */
+  }
+  
+  .disk:hover {
+    /* Disable hover effects on touch devices */
+    transform: translateX(-50%) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .tower.drag-over {
+    animation: pulse 0.5s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes pulse {
+  from { 
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 15px rgba(16, 185, 129, 0.3);
+  }
+  to { 
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.6), 0 0 25px rgba(16, 185, 129, 0.5);
   }
 }
 
