@@ -1,5 +1,38 @@
 import { Disk, Tower, GameState } from './TowerOfHanoi';
 
+// Constants for better maintainability
+const DISK_CONFIG = {
+  BASE_WIDTH: 60,
+  SIZE_MULTIPLIER: 20,
+  HEIGHT: 24,
+  SPACING: 26,
+  BASE_OFFSET: 16
+} as const;
+
+const TOWER_CONFIG = {
+  WIDTH: 'w-6',
+  HEIGHT: 'h-80',
+  TOP_SIZE: 'w-8 h-8',
+  BASE_SIZE: 'w-48 h-8'
+} as const;
+
+const CSS_CLASSES = {
+  GLASS_PANEL: 'bg-white/10 backdrop-blur-sm border border-white/20',
+  GLASS_BUTTON: 'backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg',
+  TEXT_SECONDARY: 'text-white/80',
+  ROUNDED_PANEL: 'rounded-xl',
+  ROUNDED_LARGE: 'rounded-3xl'
+} as const;
+
+const DISK_COLORS = [
+  { base: '#ef4444', dark: '#dc2626' }, // red
+  { base: '#3b82f6', dark: '#059669' }, // blue -> teal
+  { base: '#10b981', dark: '#059669' }, // green
+  { base: '#f59e0b', dark: '#d97706' }, // yellow
+  { base: '#8b5cf6', dark: '#ea580c' }, // purple -> orange
+  { base: '#f97316', dark: '#ea580c' }  // orange
+] as const;
+
 export class UIRenderer {
   private container: HTMLElement;
   private gameState: GameState;
@@ -34,71 +67,94 @@ export class UIRenderer {
     const existingModal = document.getElementById('info-modal');
     const wasModalVisible = existingModal && !existingModal.classList.contains('hidden');
     
+    // Destructure for cleaner code
+    const { moves, isComplete, towers } = gameState;
+    const diskCount = towers[0].disks.length;
+    
     this.container.innerHTML = `
       <div class="bg-gradient-to-br from-orange-900 via-red-900 to-pink-800 min-h-screen flex flex-col">
         <div class="max-w-6xl mx-auto p-4 flex-1 flex flex-col">
-          <!-- Header Bar -->
-          <div class="bg-white/10 backdrop-blur-md rounded-xl p-4 mb-4 border border-white/20 shadow-lg">
-            <div class="flex items-center justify-between gap-6">
-              <!-- Title -->
-              <h1 class="text-2xl font-bold text-white tracking-wide">
-                Tower of Hanoi
-              </h1>
-              
-              <!-- Difficulty Selector -->
-              <select id="difficulty-select" class="bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-lg px-2 py-1.5 font-semibold text-sm shadow-lg hover:bg-white/25 transition-all duration-200 cursor-pointer">
-                <option value="3" ${gameState.towers[0].disks.length === 3 ? 'selected' : ''} class="bg-gray-800 text-white">🟢 Easy (3)</option>
-                <option value="4" ${gameState.towers[0].disks.length === 4 ? 'selected' : ''} class="bg-gray-800 text-white">🟡 Medium (4)</option>
-                <option value="5" ${gameState.towers[0].disks.length === 5 ? 'selected' : ''} class="bg-gray-800 text-white">🟠 Hard (5)</option>
-                <option value="6" ${gameState.towers[0].disks.length === 6 ? 'selected' : ''} class="bg-gray-800 text-white">🔴 Expert (6)</option>
-              </select>
-              
-              <!-- Stats -->
-              <div class="flex items-center gap-4">
-                <div class="text-center">
-                  <div class="text-base font-bold text-yellow-400" data-moves="${gameState.moves}">${this.sanitizeNumber(gameState.moves)}</div>
-                  <div class="text-xs text-white/80">Moves</div>
-                </div>
-                <div class="w-px h-8 bg-white/30"></div>
-                <div class="text-center">
-                  <div class="text-base font-bold text-emerald-400" data-optimal="${optimalMoves}">${this.sanitizeNumber(optimalMoves)}</div>
-                  <div class="text-xs text-white/80">Optimal</div>
-                </div>
-              </div>
-              
-              <!-- Action Buttons -->
-              <div class="flex items-center gap-2">
-                <button id="info-btn" class="bg-teal-500/80 hover:bg-teal-500 backdrop-blur-sm text-white w-10 h-10 rounded-lg font-semibold transition-all duration-200 hover:scale-105 border border-teal-400/30 shadow-lg flex items-center justify-center text-base" title="How to Play">
-                  ℹ️
-                </button>
-                <button id="reset-btn" class="bg-red-500/80 hover:bg-red-500 backdrop-blur-sm text-white w-10 h-10 rounded-lg font-semibold transition-all duration-200 hover:scale-105 border border-red-400/30 shadow-lg flex items-center justify-center text-base" title="Reset Game">
-                  🔄
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Game Board -->
-          <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-6 border border-white/10 shadow-2xl flex-1 flex flex-col">
-            <div class="grid grid-cols-3 gap-6 flex-1">
-              ${gameState.towers.map((tower, index) => this.renderTower(tower, index)).join('')}
-            </div>
-          </div>
+          ${this.renderHeader(diskCount, moves, optimalMoves)}
+          ${this.renderGameBoard(towers)}
         </div>
       </div>
 
-      ${gameState.isComplete ? this.renderWinModal(gameState.moves, optimalMoves) : ''}
-      <div id="info-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm items-center justify-center z-50 ${wasModalVisible ? 'flex' : 'hidden'} animate-in fade-in duration-300">
-        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 text-center max-w-lg mx-4 shadow-2xl border border-white/20 text-white animate-in zoom-in duration-500">
+      ${isComplete ? this.renderWinModal(moves, optimalMoves) : ''}
+      ${this.renderInfoModal(Boolean(wasModalVisible))}
+    `;
+
+    this.attachEventListeners();
+  }
+
+  private renderHeader(diskCount: number, moves: number, optimalMoves: number): string {
+    return `
+      <!-- Header Bar -->
+      <div class="${CSS_CLASSES.GLASS_PANEL} ${CSS_CLASSES.ROUNDED_PANEL} p-4 mb-4 shadow-lg">
+        <div class="flex items-center justify-between gap-6">
+          <!-- Title -->
+          <h1 class="text-2xl font-bold text-white tracking-wide">
+            Tower of Hanoi
+          </h1>
+          
+          <!-- Difficulty Selector -->
+          <select id="difficulty-select" class="${CSS_CLASSES.GLASS_PANEL} text-white ${CSS_CLASSES.ROUNDED_PANEL} px-2 py-1.5 font-semibold text-sm shadow-lg hover:bg-white/25 transition-all duration-200 cursor-pointer">
+            <option value="3" ${diskCount === 3 ? 'selected' : ''} class="bg-gray-800 text-white">🟢 Easy (3)</option>
+            <option value="4" ${diskCount === 4 ? 'selected' : ''} class="bg-gray-800 text-white">🟡 Medium (4)</option>
+            <option value="5" ${diskCount === 5 ? 'selected' : ''} class="bg-gray-800 text-white">🟠 Hard (5)</option>
+            <option value="6" ${diskCount === 6 ? 'selected' : ''} class="bg-gray-800 text-white">🔴 Expert (6)</option>
+          </select>
+          
+          <!-- Stats -->
+          <div class="flex items-center gap-4">
+            <div class="text-center">
+              <div class="text-base font-bold text-yellow-400" data-moves="${moves}">${this.sanitizeNumber(moves)}</div>
+              <div class="text-xs ${CSS_CLASSES.TEXT_SECONDARY}">Moves</div>
+            </div>
+            <div class="w-px h-8 bg-white/30"></div>
+            <div class="text-center">
+              <div class="text-base font-bold text-emerald-400" data-optimal="${optimalMoves}">${this.sanitizeNumber(optimalMoves)}</div>
+              <div class="text-xs ${CSS_CLASSES.TEXT_SECONDARY}">Optimal</div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2">
+            <button id="info-btn" class="bg-teal-500/80 hover:bg-teal-500 ${CSS_CLASSES.GLASS_BUTTON} text-white w-10 h-10 ${CSS_CLASSES.ROUNDED_PANEL} font-semibold border border-teal-400/30 flex items-center justify-center text-base" title="How to Play">
+              ℹ️
+            </button>
+            <button id="reset-btn" class="bg-red-500/80 hover:bg-red-500 ${CSS_CLASSES.GLASS_BUTTON} text-white w-10 h-10 ${CSS_CLASSES.ROUNDED_PANEL} font-semibold border border-red-400/30 flex items-center justify-center text-base" title="Reset Game">
+              🔄
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderGameBoard(towers: Tower[]): string {
+    return `
+      <!-- Game Board -->
+      <div class="bg-white/5 backdrop-blur-sm ${CSS_CLASSES.ROUNDED_LARGE} p-6 border border-white/10 shadow-2xl flex-1 flex flex-col">
+        <div class="grid grid-cols-3 gap-6 flex-1">
+          ${towers.map((tower, index) => this.renderTower(tower, index)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderInfoModal(wasVisible: boolean): string {
+    return `
+      <div id="info-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm items-center justify-center z-50 ${wasVisible ? 'flex' : 'hidden'} animate-in fade-in duration-300">
+        <div class="${CSS_CLASSES.GLASS_PANEL} ${CSS_CLASSES.ROUNDED_LARGE} p-8 text-center max-w-lg mx-4 shadow-2xl text-white animate-in zoom-in duration-500">
           <div class="text-4xl mb-4">🎮</div>
           <h3 class="text-3xl font-bold mb-6">How to Play</h3>
-          <div class="text-left bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+          <div class="text-left ${CSS_CLASSES.GLASS_PANEL} rounded-2xl p-6 mb-8">
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <span class="text-xl">🎯</span>
                 <div>
                   <strong class="text-white">Goal:</strong><br>
-                  <span class="text-white/80">Move all disks from the left tower to the right tower.</span>
+                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">Move all disks from the left tower to the right tower.</span>
                 </div>
               </div>
               
@@ -106,7 +162,7 @@ export class UIRenderer {
                 <span class="text-xl">📏</span>
                 <div>
                   <strong class="text-white">Rules:</strong><br>
-                  <span class="text-white/80">• Only move one disk at a time<br>
+                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">• Only move one disk at a time<br>
                   • Only the top disk can be moved<br>
                   • Never place a larger disk on top of a smaller one</span>
                 </div>
@@ -116,7 +172,7 @@ export class UIRenderer {
                 <span class="text-xl">🎮</span>
                 <div>
                   <strong class="text-white">Controls:</strong><br>
-                  <span class="text-white/80">• <strong class="text-yellow-400">Click:</strong> Select a disk, then click destination tower<br>
+                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">• <strong class="text-yellow-400">Click:</strong> Select a disk, then click destination tower<br>
                   • <strong class="text-emerald-400">Drag & Drop:</strong> Drag disks directly to towers</span>
                 </div>
               </div>
@@ -125,19 +181,17 @@ export class UIRenderer {
                 <span class="text-xl">🏆</span>
                 <div>
                   <strong class="text-white">Challenge:</strong><br>
-                  <span class="text-white/80">Try to complete it in the minimum number of moves!</span>
+                  <span class="${CSS_CLASSES.TEXT_SECONDARY}">Try to complete it in the minimum number of moves!</span>
                 </div>
               </div>
             </div>
           </div>
-          <button id="close-info-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-3 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg backdrop-blur-sm border border-orange-400/30">
+          <button id="close-info-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-3 rounded-2xl font-semibold ${CSS_CLASSES.GLASS_BUTTON} border border-orange-400/30">
             Got it! 🚀
           </button>
         </div>
       </div>
     `;
-
-    this.attachEventListeners();
   }
 
   private renderTower(tower: Tower, index: number): string {
@@ -146,23 +200,23 @@ export class UIRenderer {
     
     return `
       <div class="text-center h-full flex flex-col">
-        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 shadow-lg h-full flex flex-col">
+        <div class="${CSS_CLASSES.GLASS_PANEL} ${CSS_CLASSES.ROUNDED_PANEL} p-3 shadow-lg h-full flex flex-col">
           <h3 class="text-white text-lg font-bold mb-2 flex items-center justify-center gap-1">
             <span class="text-lg">${towerIcons[index]}</span>
             ${towerLabels[index]}
           </h3>
           <div class="relative flex-1 flex flex-col items-center justify-end">
             <!-- Tower pole -->
-            <div class="tower w-6 h-80 relative bg-gradient-to-t from-amber-700 to-amber-600 rounded-full shadow-lg" data-tower-id="${index}">
+            <div class="tower ${TOWER_CONFIG.WIDTH} ${TOWER_CONFIG.HEIGHT} relative bg-gradient-to-t from-amber-700 to-amber-600 rounded-full shadow-lg" data-tower-id="${index}">
               <!-- Decorative top -->
-              <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-amber-500 rounded-full shadow-md border-2 border-amber-400"></div>
+              <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 ${TOWER_CONFIG.TOP_SIZE} bg-amber-500 rounded-full shadow-md border-2 border-amber-400"></div>
               <!-- Disks container -->
               <div class="disk-container">
                 ${tower.disks.map((disk, diskIndex) => this.renderDisk(disk, index, diskIndex)).join('')}
               </div>
             </div>
             <!-- Enhanced Base -->
-            <div class="w-48 h-8 bg-gradient-to-t from-gray-800 to-gray-700 rounded-2xl mt-2 shadow-xl border-2 border-gray-600"></div>
+            <div class="${TOWER_CONFIG.BASE_SIZE} bg-gradient-to-t from-gray-800 to-gray-700 rounded-2xl mt-2 shadow-xl border-2 border-gray-600"></div>
           </div>
         </div>
       </div>
@@ -170,16 +224,9 @@ export class UIRenderer {
   }
 
   private renderDisk(disk: Disk, towerId: number, position: number): string {
-    // Desktop-optimized sizing
-    const baseWidth = 60;
-    const sizeMultiplier = 20;
-    const width = baseWidth + (disk.size * sizeMultiplier);
-    const height = 24;
-    
-    // Fixed stacking calculation - each disk should be positioned exactly on top of the previous one
-    const diskSpacing = 26; // Height + small gap
-    const baseOffset = 16;
-    const bottom = position * diskSpacing + baseOffset;
+    // Use constants for sizing
+    const width = DISK_CONFIG.BASE_WIDTH + (disk.size * DISK_CONFIG.SIZE_MULTIPLIER);
+    const bottom = position * DISK_CONFIG.SPACING + DISK_CONFIG.BASE_OFFSET;
     
     const isTopDisk = position === this.gameState.towers[towerId].disks.length - 1;
     
@@ -193,8 +240,8 @@ export class UIRenderer {
         class="disk absolute cursor-pointer transition-all duration-200 ${shadowClass} ${scaleClass} ${borderClass} ${isTopDisk ? 'z-10' : 'opacity-90 cursor-not-allowed'} rounded-xl flex items-center justify-center font-bold text-white"
         style="
           width: ${width}px; 
-          height: ${height}px; 
-          background: linear-gradient(135deg, ${disk.color}, ${this.darkenColor(disk.color)}); 
+          height: ${DISK_CONFIG.HEIGHT}px; 
+          background: linear-gradient(135deg, ${disk.color}, ${this.getDarkColor(disk.color)}); 
           bottom: ${bottom}px;
           left: 50%;
           transform: translateX(-50%);
@@ -213,17 +260,10 @@ export class UIRenderer {
     `;
   }
 
-  private darkenColor(color: string): string {
-    // Simple color darkening function
-    const colorMap: { [key: string]: string } = {
-      '#ef4444': '#dc2626', // red
-      '#3b82f6': '#059669', // changed blue to teal  
-      '#10b981': '#059669', // green
-      '#f59e0b': '#d97706', // yellow
-      '#8b5cf6': '#ea580c', // changed purple to orange
-      '#f97316': '#ea580c'  // orange
-    };
-    return colorMap[color] || color;
+  private getDarkColor(color: string): string {
+    // Use the predefined color mapping for consistency
+    const colorEntry = DISK_COLORS.find(c => c.base === color);
+    return colorEntry ? colorEntry.dark : color;
   }
 
   // Security: Sanitize numbers to prevent XSS
@@ -243,44 +283,6 @@ export class UIRenderer {
     return div.innerHTML;
   }
 
-  // Security: Safe localStorage operations with validation
-  // @ts-ignore: Kept for future security features
-  private setSecureLocalStorage(key: string, value: string): void {
-    try {
-      // Validate key format (only allow alphanumeric and dashes)
-      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
-        console.warn('⚠️ Invalid localStorage key format:', key);
-        return;
-      }
-      
-      // Limit value length to prevent storage abuse
-      if (value.length > 1000) {
-        console.warn('⚠️ localStorage value too long:', key);
-        return;
-      }
-      
-      localStorage.setItem(key, value);
-    } catch (error) {
-      console.error('❌ Failed to set localStorage:', error);
-    }
-  }
-
-  // @ts-ignore: Kept for future security features  
-  private getSecureLocalStorage(key: string): string | null {
-    try {
-      // Validate key format
-      if (!/^[a-zA-Z0-9-]+$/.test(key)) {
-        console.warn('⚠️ Invalid localStorage key format:', key);
-        return null;
-      }
-      
-      return localStorage.getItem(key);
-    } catch (error) {
-      console.error('❌ Failed to get localStorage:', error);
-      return null;
-    }
-  }
-
   private renderWinModal(moves: number, optimal: number): string {
     const performance = moves === optimal ? 'Perfect!' : 
                        moves <= optimal * 1.5 ? 'Excellent!' : 
@@ -292,12 +294,12 @@ export class UIRenderer {
     
     return `
       <div class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
-        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 text-center max-w-md mx-4 shadow-2xl border border-white/20 text-white animate-in zoom-in duration-500">
+        <div class="${CSS_CLASSES.GLASS_PANEL} ${CSS_CLASSES.ROUNDED_LARGE} p-8 text-center max-w-md mx-4 shadow-2xl text-white animate-in zoom-in duration-500">
           <div class="text-6xl mb-6">🎉</div>
           <h2 class="text-3xl font-bold mb-4">Congratulations!</h2>
-          <p class="text-white/80 mb-8 text-lg">You solved the Tower of Hanoi!</p>
+          <p class="${CSS_CLASSES.TEXT_SECONDARY} mb-8 text-lg">You solved the Tower of Hanoi!</p>
           
-          <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+          <div class="${CSS_CLASSES.GLASS_PANEL} rounded-2xl p-6 mb-8">
             <div class="space-y-4">
               <div class="flex justify-between items-center text-lg">
                 <span class="font-medium text-white/90">Your Moves:</span>
@@ -316,7 +318,7 @@ export class UIRenderer {
             </div>
           </div>
           
-          <button id="play-again-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg text-lg backdrop-blur-sm border border-orange-400/30">
+          <button id="play-again-btn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-2xl font-semibold ${CSS_CLASSES.GLASS_BUTTON} text-lg border border-orange-400/30">
             🎮 Play Again
           </button>
         </div>
@@ -325,56 +327,56 @@ export class UIRenderer {
   }
 
   private attachEventListeners(): void {
+    // Cache DOM elements to reduce queries
+    const elements = {
+      resetBtn: document.getElementById('reset-btn'),
+      playAgainBtn: document.getElementById('play-again-btn'),
+      infoBtn: document.getElementById('info-btn'),
+      infoModal: document.getElementById('info-modal'),
+      closeInfoBtn: document.getElementById('close-info-btn'),
+      difficultySelect: document.getElementById('difficulty-select') as HTMLSelectElement
+    };
+
     // Reset button
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', this.onReset);
-    }
+    elements.resetBtn?.addEventListener('click', this.onReset);
 
     // Play again button (in win modal)
-    const playAgainBtn = document.getElementById('play-again-btn');
-    if (playAgainBtn) {
-      playAgainBtn.addEventListener('click', this.onReset);
-    }
+    elements.playAgainBtn?.addEventListener('click', this.onReset);
 
-    // Info button
-    const infoBtn = document.getElementById('info-btn');
-    const infoModal = document.getElementById('info-modal');
-    const closeInfoBtn = document.getElementById('close-info-btn');
-    
-    if (infoBtn && infoModal) {
-      infoBtn.addEventListener('click', () => {
-        infoModal.classList.remove('hidden');
-        infoModal.classList.add('flex');
+    // Info modal handling
+    if (elements.infoBtn && elements.infoModal) {
+      elements.infoBtn.addEventListener('click', () => {
+        elements.infoModal!.classList.remove('hidden');
+        elements.infoModal!.classList.add('flex');
       });
     }
     
-    if (closeInfoBtn && infoModal) {
-      closeInfoBtn.addEventListener('click', () => {
-        infoModal.classList.add('hidden');
-        infoModal.classList.remove('flex');
+    if (elements.closeInfoBtn && elements.infoModal) {
+      elements.closeInfoBtn.addEventListener('click', () => {
+        elements.infoModal!.classList.add('hidden');
+        elements.infoModal!.classList.remove('flex');
       });
     }
     
     // Close modal when clicking outside
-    if (infoModal) {
-      infoModal.addEventListener('click', (e) => {
-        if (e.target === infoModal) {
-          infoModal.classList.add('hidden');
-          infoModal.classList.remove('flex');
-        }
-      });
-    }
+    elements.infoModal?.addEventListener('click', (e) => {
+      if (e.target === elements.infoModal && elements.infoModal) {
+        elements.infoModal.classList.add('hidden');
+        elements.infoModal.classList.remove('flex');
+      }
+    });
 
     // Difficulty selector
-    const difficultySelect = document.getElementById('difficulty-select') as HTMLSelectElement;
-    if (difficultySelect) {
-      difficultySelect.addEventListener('change', (e) => {
-        const target = e.target as HTMLSelectElement;
-        this.onDifficultyChange(parseInt(target.value));
-      });
-    }
+    elements.difficultySelect?.addEventListener('change', (e) => {
+      const target = e.target as HTMLSelectElement;
+      this.onDifficultyChange(parseInt(target.value));
+    });
 
+    // Disk and tower events
+    this.attachGameEvents();
+  }
+
+  private attachGameEvents(): void {
     // Disk click events
     document.querySelectorAll('.disk').forEach(diskEl => {
       const isTop = diskEl.getAttribute('data-is-top') === 'true';
