@@ -39,7 +39,53 @@ export class UIRenderer {
   }
   private renderTouchHelp(){ return `<div class="touch-help" id="touch-help" role="note">Tap a tower to pick the top disk, then tap a destination tower to place it. <button class="btn btn-ghost" id="dismiss-help" aria-label="Dismiss help">✕</button></div>`; }
   private renderTower(id:number){ const labels=['Source','Auxiliary','Destination']; return `<div class="tower" data-id="${id}" role="group" aria-label="${labels[id]} tower"><div class="tower-label">${['SRC','AUX','DST'][id]}</div><div class="tower-base"></div></div>`; }
-  private paintDisks(touch:boolean){ this.state.towers.forEach(t=>{ const towerEl=this.container.querySelector(`.tower[data-id='${t.id}']`) as HTMLElement; if(!towerEl) return; t.disks.forEach((d,i)=>{ const top=i===t.disks.length-1; const width=50 + d.size*26; const bottom=50 + i*26; const el=document.createElement('div'); el.className='disk'+(top?' top':''); el.style.width=width+'px'; el.style.bottom=bottom+'px'; el.dataset.size=String(d.size); el.dataset.tower=String(t.id); el.textContent=String(d.size); el.setAttribute('role','button'); el.setAttribute('aria-label',`Disk size ${d.size}`); if(top && !touch) el.setAttribute('draggable','true'); towerEl.appendChild(el); }); }); }
+  private paintDisks(touch:boolean){
+    const layout=document.documentElement.getAttribute('data-layout');
+    this.state.towers.forEach(t=>{
+      const towerEl=this.container.querySelector(`.tower[data-id='${t.id}']`) as HTMLElement; if(!towerEl) return;
+      const count=t.disks.length;
+      const isPortrait=layout==='mobilePortrait';
+      const towerH=towerEl.clientHeight || (isPortrait?200:300);
+      // Clear old
+      towerEl.querySelectorAll('.disk').forEach(d=>d.remove());
+      // Portrait dynamic sizing
+      let baseOffset = isPortrait?34:50; // space above base
+      let diskH = isPortrait? (count>5?18:20):28;
+      const usable = towerH - baseOffset - diskH - (isPortrait?6:10); // reserve some top padding
+      let step = count>1 ? Math.floor(usable/Math.max(count-1,1)) : 0;
+      if(isPortrait){
+        step = Math.min(step, count>5?20:22); // cap
+        step = Math.max(step, 14); // floor so spacing stays readable
+      } else {
+        step = 26;
+      }
+      // If still overflowing (top disk exceeds tower), compress further
+      const needed = baseOffset + diskH + step*(count-1);
+      if(needed > towerH - 4){
+        const available = towerH - 4 - baseOffset;
+        if(count>1){
+          step = Math.max(12, Math.floor((available - diskH)/(count-1)));
+        }
+        if(diskH + step*(count-1) > available){
+          // shrink disk height minimally
+          diskH = Math.max(14, Math.floor(available - step*(count-1)));
+        }
+      }
+      t.disks.forEach((d,i)=>{
+        const top=i===t.disks.length-1;
+        const width=50 + d.size*26; // width unchanged
+        const bottom=baseOffset + i*step;
+        const el=document.createElement('div');
+        el.className='disk'+(top?' top':'');
+        el.style.width=width+'px';
+        el.style.bottom=bottom+'px';
+        if(isPortrait) el.style.height=diskH+'px';
+        el.dataset.size=String(d.size); el.dataset.tower=String(t.id); el.textContent=String(d.size);
+        el.setAttribute('role','button'); el.setAttribute('aria-label',`Disk size ${d.size}`); if(top && !touch) el.setAttribute('draggable','true');
+        towerEl.appendChild(el);
+      });
+    });
+  }
   private bind(){
     (this.container.querySelector('#reset') as HTMLElement).onclick=()=>this.onReset();
     (this.container.querySelector('#difficulty') as HTMLSelectElement).onchange=e=>{ const n=parseInt((e.target as HTMLSelectElement).value,10); this.onDifficulty(n); };

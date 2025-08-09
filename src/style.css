@@ -77,8 +77,10 @@ select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
 /* Layout mode adaptations */
 [data-layout='mobilePortrait'] .board { flex-direction:column; }
 [data-layout='mobilePortrait'] .towers { display:flex; flex-direction:column; gap:.9rem; }
-[data-layout='mobilePortrait'] .tower { min-height:180px; }
-[data-layout='mobilePortrait'] .tower-base { height:32px; }
+[data-layout='mobilePortrait'] .tower { min-height:200px; }
+[data-layout='mobilePortrait'] .tower-base { height:24px; bottom:4px; }
+[data-layout='mobilePortrait'] .tower:before { top:10px; bottom:36px; }
+[data-layout='mobilePortrait'] .tower-label { top:50%; left:4px; transform:translateY(-50%) rotate(-90deg); transform-origin:left center; letter-spacing:.25em; font-size:.55rem; }
 [data-layout='mobilePortrait'] .header { gap:.5rem; }
 [data-layout='mobilePortrait'] .header-group { width:100%; justify-content:space-between; }
 [data-layout='mobilePortrait'] #difficulty { flex:1; }
