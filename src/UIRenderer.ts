@@ -8,10 +8,7 @@ export class UIRenderer {
   private showTouchHelp = true; // show banner once on touch devices
   constructor(container:HTMLElement,onMove:(f:number,t:number)=>boolean,onReset:()=>void,onDifficulty:(n:number)=>void){ this.container=container; this.onMove=onMove; this.onReset=onReset; this.onDifficulty=onDifficulty; }
   render(state:GameState,optimal:number){
-    this.state=state;
-    const touch=isTouch();
-    if(state.moves>0 && this.showTouchHelp){ this.showTouchHelp=false; }
-    const percent = optimal>0? Math.min(100, Math.round((state.moves/optimal)*100)) : 0;
+    this.state=state; const touch=isTouch(); if(state.moves>0 && this.showTouchHelp){ this.showTouchHelp=false; }
     this.container.innerHTML=`
     <header class="header" aria-label="Game controls">
       <div class="header-group">
@@ -26,18 +23,14 @@ export class UIRenderer {
         <button class="btn btn-danger" id="reset" aria-label="Reset game">Reset</button>
         <button class="btn" id="rules" aria-haspopup="dialog" aria-controls="rules-modal">How</button>
       </div>
-      <div class="progress" role="progressbar" aria-label="Moves progress" aria-valuemin="0" aria-valuemax="${optimal}" aria-valuenow="${state.moves}"><div class="progress-bar" style="width:${percent}%;"></div></div>
     </header>
     ${touch && this.showTouchHelp ? this.renderTouchHelp():''}
     <main class="board" aria-label="Game board">
-      <div class="towers" role="list">
-        ${state.towers.map(t=>this.renderTower(t.id)).join('')}
-      </div>
+      <div class="towers" role="list">${state.towers.map(t=>this.renderTower(t.id)).join('')}</div>
     </main>
     ${state.isComplete? this.renderWin(optimal):''}
     ${this.renderRulesModal()}`;
-    this.paintDisks(touch);
-    this.bind();
+    this.paintDisks(touch); this.bind();
   }
   private renderTouchHelp(){ return `<div class="touch-help" id="touch-help" role="note">Tap a tower to pick the top disk, then tap a destination tower to place it. <button class="btn btn-ghost" id="dismiss-help" aria-label="Dismiss help">✕</button></div>`; }
   private renderTower(id:number){ const labels=['Source','Auxiliary','Destination']; return `<div class="tower" data-id="${id}" tabindex="0" role="group" aria-label="${labels[id]} tower"><div class="tower-label">${['SRC','AUX','DST'][id]}</div><div class="tower-base"></div></div>`; }
