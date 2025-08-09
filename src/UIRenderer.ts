@@ -5,8 +5,13 @@ const isTouch = () => matchMedia('(pointer:coarse)').matches;
 export class UIRenderer {
   private container:HTMLElement; private onMove:(f:number,t:number)=>boolean; private onReset:()=>void; private onDifficulty:(n:number)=>void; private state:GameState={towers:[],moves:0,isComplete:false};
   private dragFrom:number|null=null; private tapSel:number|null=null; private lastTapTime=0;
+  private showTouchHelp = true; // show banner once on touch devices
   constructor(container:HTMLElement,onMove:(f:number,t:number)=>boolean,onReset:()=>void,onDifficulty:(n:number)=>void){ this.container=container; this.onMove=onMove; this.onReset=onReset; this.onDifficulty=onDifficulty; }
-  render(state:GameState,optimal:number){ this.state=state; const touch=isTouch(); this.container.innerHTML=`
+  render(state:GameState,optimal:number){
+    this.state=state;
+    const touch=isTouch();
+    if(state.moves>0 && this.showTouchHelp){ this.showTouchHelp=false; }
+    this.container.innerHTML=`
     <header class="header" aria-label="Game controls">
       <div class="header-group">
         <h1>Hanoi</h1>
@@ -21,7 +26,7 @@ export class UIRenderer {
         <button class="btn" id="rules" aria-haspopup="dialog" aria-controls="rules-modal">How</button>
       </div>
     </header>
-    ${touch ? this.renderTouchHelp():''}
+    ${touch && this.showTouchHelp ? this.renderTouchHelp():''}
     <main class="board" aria-label="Game board">
       <div class="towers" role="list">
         ${state.towers.map(t=>this.renderTower(t.id)).join('')}
@@ -38,7 +43,7 @@ export class UIRenderer {
   private bind(){
     (this.container.querySelector('#reset') as HTMLElement).onclick=()=>this.onReset();
     (this.container.querySelector('#difficulty') as HTMLSelectElement).onchange=e=>{ const n=parseInt((e.target as HTMLSelectElement).value,10); this.onDifficulty(n); };
-    const helpDismiss=this.container.querySelector('#dismiss-help') as HTMLElement|null; if(helpDismiss) helpDismiss.onclick=()=>helpDismiss.parentElement?.remove();
+    const helpDismiss=this.container.querySelector('#dismiss-help') as HTMLElement|null; if(helpDismiss) helpDismiss.onclick=()=>{ this.showTouchHelp=false; helpDismiss.parentElement?.remove(); };
     const rulesBtn=this.container.querySelector('#rules') as HTMLElement; const rulesModal=this.container.querySelector('#rules-modal') as HTMLElement; const closeRules=this.container.querySelector('#close-rules') as HTMLElement; const okRules=this.container.querySelector('#rules-ok') as HTMLElement;
     rulesBtn.onclick=()=>{ rulesModal.style.display='flex'; (rulesModal.querySelector('h2') as HTMLElement)?.focus(); };
     const close=()=>{ rulesModal.style.display='none'; }; closeRules.onclick=close; okRules.onclick=close; rulesModal.onclick=e=>{ if(e.target===rulesModal) close(); };
@@ -65,7 +70,23 @@ export class UIRenderer {
     const closeWin=this.container.querySelector('#close-win') as HTMLElement|null; if(closeWin) closeWin.onclick=()=>{ const backdrop=closeWin.closest('.modal-backdrop') as HTMLElement|null; backdrop?.remove(); };
   }
   private validMove(from:number,to:number){ if(from===to) return false; const f=this.state.towers[from]; const t=this.state.towers[to]; if(!f.disks.length) return false; const disk=f.disks[f.disks.length-1]; const top=t.disks[t.disks.length-1]; if(top && top.size<disk.size) return false; return true; }
-  private handleTap(tower:number){ const now=Date.now(); if(now - this.lastTapTime < 120) return; this.lastTapTime=now; if(this.tapSel==null){ if(this.state.towers[tower].disks.length){ const picked=this.state.towers[tower].disks[this.state.towers[tower].disks.length-1]; this.tapSel=tower; this.highlight(tower); this.announce(`Picked disk ${picked.size} from tower ${tower+1}`); } else { this.flashInvalid(tower,'No disk to pick'); } } else { if(this.tapSel===tower){ this.clearHighlights(); this.tapSel=null; this.announce('Selection cleared'); return; } if(this.validMove(this.tapSel,tower)){ this.onMove(this.tapSel,tower); this.announce(`Moved disk to tower ${tower+1}. Moves ${this.state.moves+1}`); } else { this.flashInvalid(tower,'Invalid move'); } this.tapSel=null; this.clearHighlights(); } }
+  private handleTap(tower:number){
+    const now=Date.now(); if(now - this.lastTapTime < 120) return; this.lastTapTime=now;
+    if(this.tapSel==null){
+      if(this.state.towers[tower].disks.length){
+        const picked=this.state.towers[tower].disks[this.state.towers[tower].disks.length-1];
+        this.tapSel=tower; this.highlight(tower); this.announce(`Picked disk ${picked.size} from tower ${tower+1}`);
+      } else { this.flashInvalid(tower,'No disk to pick'); }
+    } else {
+      if(this.tapSel===tower){ this.clearHighlights(); this.tapSel=null; this.announce('Selection cleared'); return; }
+      if(this.validMove(this.tapSel,tower)){
+        this.onMove(this.tapSel,tower);
+        if(this.showTouchHelp){ this.showTouchHelp=false; document.getElementById('touch-help')?.remove(); }
+        this.announce(`Moved disk to tower ${tower+1}. Moves ${this.state.moves+1}`);
+      } else { this.flashInvalid(tower,'Invalid move'); }
+      this.tapSel=null; this.clearHighlights();
+    }
+  }
   private highlight(tower:number){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(el) el.classList.add('drag-over'); }
   private clearHighlights(){ this.container.querySelectorAll('.tower').forEach(el=>el.classList.remove('drag-over','invalid','tap-invalid')); }
   private flashInvalid(tower:number,msg:string){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(!el) return; el.classList.add('tap-invalid'); this.announce(msg); setTimeout(()=>el.classList.remove('tap-invalid'),420); navigator.vibrate?.(40); }
