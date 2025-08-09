@@ -1,5 +1,33 @@
 # Tower of Hanoi - AI Coding Agent Instructions
 
+<!-- ================= NEW BASELINE SUMMARY (Aug 2025) ================= -->
+## Current Baseline (Post Monochrome Rewrite)
+- Stack: Vite + TypeScript + custom monochrome CSS (Tailwind removed at runtime; config reference still in plan).
+- UI: Single `UIRenderer` class (legacy monolith) + `TowerOfHanoi` state class.
+- Interaction:
+  - Desktop: Drag top disk OR click (tap logic also works).
+  - Touch: Tap-select + tap-destination only. One-time help banner (dismiss or auto-hide after first valid move).
+- Accessibility: ARIA roles for groups, live region announcements, modal structure (no focus trap yet).
+- Disks: Difficulty now limited to 3–6 historically, BUT product decision: cap at 5 moving forward (6 caused vertical overflow on small portrait). Update logic before component extraction.
+- Layout: Simple CSS + (previous viewport adaptive logic was removed during revert). Future work: reintroduce adaptive layout via components.
+
+## Recent Changes Applied
+| Change | Reason | Follow‑up |
+|--------|--------|-----------|
+| Restored original simplified `paintDisks` implementation | Revert experimental adaptive sizing that introduced complexity | Reimplement adaptivity inside future `Disk`/`Tower` components |
+| Reintroduced one‑time touch help banner logic | UX clarity for first-time touch users | Persist dismissal in localStorage later |
+| Capped difficulty effectively (planning shift to max 5) | Prevent visual overlap & compression issues in portrait | Remove 6 from dropdown & state validation everywhere |
+
+## Immediate To‑Do (Before Phase 1 Extraction)
+1. Enforce max disk count = 5 everywhere (UI + validation) – (UI currently still lists 6; remove it if not already).  
+2. Persist help banner dismissal (key: `hanoi_help_dismissed=1`).  
+3. Introduce lightweight layout utility (data-layout attr) again to prepare for component split.  
+4. Add keyboard interactions (Arrow / Enter to move) for accessibility baseline.
+
+After these four, proceed with Phase 1 below (component extraction) using the modernization plan.
+
+<!-- ================= EXISTING MODERNIZATION PLAN (UNCHANGED) ================= -->
+
 ## Project Overview
 A modern TypeScript-based Tower of Hanoi puzzle game using Vite, Tailwind CSS v4, and vanilla DOM manipulation. **The current architecture requires complete modernization for production readiness.**
 
