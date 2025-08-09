@@ -4,6 +4,8 @@ Minimal, fast Tower of Hanoi built with **Vite**, **TypeScript**, and a custom *
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-latest-646CFF) ![PWA](https://img.shields.io/badge/PWA-Ready-black) ![Mode](https://img.shields.io/badge/Theme-Monochrome-lightgray)
 
+![Tower of Hanoi 5 disks screenshot](public/screenshots/5-disks-playwright.png)
+
 ## ✨ Current Features
 
 - 🎨 Pure monochrome UI (no Tailwind at runtime; handcrafted CSS)
