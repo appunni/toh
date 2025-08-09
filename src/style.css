@@ -62,8 +62,8 @@ select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
 .tower-base { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:82%; height:42px; background:linear-gradient(180deg,#262626,#161616); border:1px solid #323232; border-radius:12px; box-shadow:inset 0 0 0 1px #1b1b1b, 0 4px 16px -4px rgba(0,0,0,.8); }
 .tower.drag-over { outline:2px dashed #fff; outline-offset:-4px; background:#1f1f1f; }
 .tower.invalid { outline:2px solid #ff4d4d; }
-.tower.tap-target-valid { outline:2px solid #6cff6c; outline-offset:-4px; }
-.tower.tap-target-invalid { outline:2px solid var(--danger); outline-offset:-4px; }
+.tower.tap-target-valid { outline:none; }
+.tower.tap-target-invalid { outline:none; }
 
 .disk { position:absolute; left:50%; transform:translateX(-50%); height:28px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:.8rem; letter-spacing:.05em; background:linear-gradient(145deg,#fff,#cfcfcf); color:#000; border:1px solid #b3b3b3; border-radius:999px; box-shadow:0 4px 10px -3px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.25) inset; cursor:grab; user-select:none; transition:var(--transition); }
 .disk:not(.top) { opacity:.6; cursor:not-allowed; }
@@ -117,8 +117,8 @@ select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
 ::-webkit-scrollbar-thumb:hover{ background:#262626; }
 
 /* Tap invalid move feedback */
-.tower.tap-invalid { outline:2px solid #ff4d4d; animation: tapInvalid 420ms ease; }
-@keyframes tapInvalid { 0%{ transform:translateY(0); } 25%{ transform:translateY(-3px); } 50%{ transform:translateY(0); } 75%{ transform:translateY(-2px);} 100%{ transform:translateY(0);} }
+.tower.tap-invalid { outline:2px solid #ff4d4d; animation: tapInvalid 360ms ease; }
+@keyframes tapInvalid { 0%,100%{ transform:translateX(0);} 20%{ transform:translateX(-4px);} 40%{ transform:translateX(4px);} 60%{ transform:translateX(-3px);} 80%{ transform:translateX(3px);} }
 .touch-help { background:#111; border:1px solid var(--border); padding:.65rem .75rem; border-radius:var(--radius-md); font-size:.65rem; line-height:1.35; display:flex; gap:.65rem; align-items:flex-start; box-shadow:var(--shadow-sm); }
 .touch-help button { margin-left:auto; }
 [data-layout='mobilePortrait'] .touch-help { font-size:.7rem; }
