@@ -2,7 +2,7 @@
 // Enables offline functionality and fast loading
 // Security: Strict caching policy with origin validation
 
-const CACHE_NAME = 'hanoi-puzzle-v1.0.0';
+const CACHE_NAME = 'hanoi-puzzle-v1.0.1';
 const BASE_PATH = '/toh/';
 const ALLOWED_ORIGINS = [
   self.location.origin,  // Same origin only
@@ -13,13 +13,14 @@ const STATIC_ASSETS = [
   `${BASE_PATH}`,
   `${BASE_PATH}index.html`,
   `${BASE_PATH}manifest.json`,
-  `${BASE_PATH}icons/icon.svg`,
-  `${BASE_PATH}icons/icon-192x192.png`,
-  `${BASE_PATH}icons/icon-512x512.png`,
+  // Updated icon set (removed missing icon.svg & png variants)
+  `${BASE_PATH}icons/icon-mono.svg`,
+  `${BASE_PATH}icons/icon-simple.svg`,
+  `${BASE_PATH}icons/icon-mask.svg`,
 ];
 
 // Dynamic assets that will be cached as they're accessed
-const DYNAMIC_CACHE = 'hanoi-dynamic-v1.0.0';
+const DYNAMIC_CACHE = 'hanoi-dynamic-v1.0.1';
 
 // Security: Validate request origin
 function isValidOrigin(url) {
