@@ -1,52 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    
-    <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-    
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/svg+xml" href="/toh/icons/icon.svg" />
-    <link rel="apple-touch-icon" href="/toh/icons/icon-192x192.png" />
-    
-    <!-- Viewport and Mobile Optimization -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/toh/manifest.json" />
-    <meta name="theme-color" content="#f97316" />
-    <meta name="background-color" content="#dc2626" />
-    
-    <!-- Mobile Web App Capabilities -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Hanoi Puzzle" />
-    
-    <!-- Windows/Microsoft -->
-    <meta name="msapplication-TileColor" content="#f97316" />
-    <meta name="msapplication-config" content="/toh/browserconfig.xml" />
-    
-    <!-- SEO and Social -->
-    <meta name="description" content="Classic Tower of Hanoi puzzle game with modern UI. Challenge yourself with this timeless mathematical puzzle!" />
-    <meta name="keywords" content="tower of hanoi, puzzle, game, mathematics, logic, challenge" />
-    <meta name="author" content="Tower of Hanoi Game" />
-    
-    <!-- Open Graph / Social Media -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Tower of Hanoi - Classic Puzzle Game" />
-    <meta property="og:description" content="Challenge yourself with the classic Tower of Hanoi puzzle game!" />
-    <meta property="og:image" content="/toh/icons/icon-512x512.png" />
-    
-    <title>Tower of Hanoi - Classic Puzzle Game</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Tower of Hanoi</title>
+  <meta name="theme-color" content="#000" />
+  <meta name="description" content="Monochrome Tower of Hanoi puzzle" />
+  <!-- use relative paths so Vite base '/toh/' does not duplicate -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';" />
+</head>
+<body class="app-root">
+  <div id="app" class="app-container"></div>
+  <div id="live-region" class="sr-only" aria-live="polite"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
