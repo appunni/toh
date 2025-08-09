@@ -149,7 +149,16 @@ export class UIRenderer {
       this.tapSel=null; this.clearHighlights();
     }
   }
-  private flashInvalid(tower:number,msg:string){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(!el) return; el.classList.add('tap-invalid'); this.announce(msg); setTimeout(()=>el.classList.remove('tap-invalid'),420); navigator.vibrate?.(40); }
+  private flashInvalid(tower:number,msg:string){
+    const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(!el) return;
+    el.classList.remove('tap-invalid','shake'); // reset if rapid
+    // force reflow so animation restarts
+    void el.offsetWidth;
+    el.classList.add('tap-invalid','shake');
+    this.announce(msg);
+    setTimeout(()=>{ el.classList.remove('tap-invalid','shake'); },480);
+    navigator.vibrate?.(55);
+  }
   private announce(text:string){ const live=document.getElementById('live-region'); if(live){ live.textContent=''; setTimeout(()=>{ live.textContent=text; },40); } }
   private renderWin(optimal:number){ return `<div class="modal-backdrop"><div class="modal win"><button class="close-btn" id="close-win">✕</button><h3>Solved!</h3><div class="win-grid"><div class="win-item"><div class="win-label">Moves</div><div class="win-value">${this.state.moves}</div></div><div class="win-item"><div class="win-label">Optimal</div><div class="win-value">${optimal}</div></div></div><div class="modal-actions"><button class="btn btn-accent" id="again-btn">Play Again</button></div></div></div>`; }
   private renderRulesModal(){ return `<div class="modal-backdrop" id="rules-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div class="modal"><button class="close-btn" id="close-rules" aria-label="Close help">✕</button><h2 id="rules-title">How to Play</h2><p>Goal: move all disks to the Destination tower.<br/>Tap a tower to pick its top disk, then tap another to place it. Larger disks cannot go on smaller ones. Complete it in the fewest moves (optimal shown above).</p><div class="modal-actions"><button class="btn btn-accent" id="rules-ok">Got it</button></div></div></div>`; }

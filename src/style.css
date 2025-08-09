@@ -122,3 +122,4 @@ select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
 .touch-help { background:#111; border:1px solid var(--border); padding:.65rem .75rem; border-radius:var(--radius-md); font-size:.65rem; line-height:1.35; display:flex; gap:.65rem; align-items:flex-start; box-shadow:var(--shadow-sm); }
 .touch-help button { margin-left:auto; }
 [data-layout='mobilePortrait'] .touch-help { font-size:.7rem; }
+.shake { animation: tapInvalid 420ms ease; }
