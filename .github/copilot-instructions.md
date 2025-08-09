@@ -8,25 +8,32 @@
   - Desktop: Drag top disk OR click (tap logic also works).
   - Touch: Tap-select + tap-destination only. One-time help banner (dismiss or auto-hide after first valid move).
 - Accessibility: ARIA roles for groups, live region announcements, modal structure (no focus trap yet).
-- Disks: Difficulty now limited to 3–6 historically, BUT product decision: cap at 5 moving forward (6 caused vertical overflow on small portrait). Update logic before component extraction.
-- Layout: Simple CSS + (previous viewport adaptive logic was removed during revert). Future work: reintroduce adaptive layout via components.
+- Disks: Difficulty capped at 5 (6 removed from UI & logic due to vertical constraints in portrait).
+- Layout: Viewport observer reintroduced (`data-layout` attribute) with orientation-aware disk height recalculation.
+- Feedback: Invalid tap move now gives a red outline + shake animation (no persistent green/red previews).
 
 ## Recent Changes Applied
 | Change | Reason | Follow‑up |
 |--------|--------|-----------|
-| Restored original simplified `paintDisks` implementation | Revert experimental adaptive sizing that introduced complexity | Reimplement adaptivity inside future `Disk`/`Tower` components |
-| Reintroduced one‑time touch help banner logic | UX clarity for first-time touch users | Persist dismissal in localStorage later |
-| Capped difficulty effectively (planning shift to max 5) | Prevent visual overlap & compression issues in portrait | Remove 6 from dropdown & state validation everywhere |
+| Restored original simplified `paintDisks` implementation | Revert experimental adaptive sizing complexity | Reimplement adaptivity inside future `Disk`/`Tower` components |
+| Reintroduced one‑time touch help banner logic | UX clarity for first-time touch users | Persist dismissal in localStorage |
+| Enforced max difficulty = 5 (removed 6 from dropdown) | Prevent portrait overflow | Validate in future store & surface warning if query asks for >5 |
+| Orientation disk repaint logic (`recalcForLayoutChange` via full re-render) | Fix inconsistent heights when rotating device | Replace with component-level diff after extraction |
+| Simplified tap feedback (removed persistent valid/invalid outlines) | Reduce visual noise | Consider optional accessibility hint mode |
+| Added shake + haptic vibration on invalid move | Clearer error feedback on mobile | Respect `prefers-reduced-motion` later |
+| Aligned icons (simple/mask to mono) & fixed favicon refs | Consistent branding & correct browser tab icon | Add raster fallbacks (PNG) for legacy browsers |
+| Updated Service Worker icon cache list + version bump to v1.0.1 | Remove missing assets & force refresh | Automate versioning during build |
 
 ## Immediate To‑Do (Before Phase 1 Extraction)
-1. Enforce max disk count = 5 everywhere (UI + validation) – (UI currently still lists 6; remove it if not already).  
-2. Persist help banner dismissal (key: `hanoi_help_dismissed=1`).  
-3. Introduce lightweight layout utility (data-layout attr) again to prepare for component split.  
-4. Add keyboard interactions (Arrow / Enter to move) for accessibility baseline.
+1. Persist help banner dismissal (key: `hanoi_help_dismissed=1`).
+2. Add keyboard interactions (Arrow / Enter or Space to pick/place; Esc to cancel selection) for accessibility baseline.
+3. Add focus styling & manage focus order (ensure towers are tab-focusable, announce moves succinctly).
+4. Centralize max disk enforcement (reject query params >5 & adjust manifest shortcuts if needed).
+5. Prepare minimal BaseComponent abstraction (no refactor yet; just a placeholder interface) to ease Phase 1 extraction.
 
-After these four, proceed with Phase 1 below (component extraction) using the modernization plan.
+After these, proceed with Phase 1 below (component extraction) using the modernization plan.
 
-<!-- ================= EXISTING MODERNIZATION PLAN (UNCHANGED) ================= -->
+<!-- ================= EXISTING MODERNIZATION PLAN (UNCHANGED BELOW) ================= -->
 
 ## Project Overview
 A modern TypeScript-based Tower of Hanoi puzzle game using Vite, Tailwind CSS v4, and vanilla DOM manipulation. **The current architecture requires complete modernization for production readiness.**
