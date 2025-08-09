@@ -127,25 +127,38 @@ export class UIRenderer {
     const closeWin=this.container.querySelector('#close-win') as HTMLElement|null; if(closeWin) closeWin.onclick=()=>{ const backdrop=closeWin.closest('.modal-backdrop') as HTMLElement|null; backdrop?.remove(); };
   }
   private validMove(from:number,to:number){ if(from===to) return false; const f=this.state.towers[from]; const t=this.state.towers[to]; if(!f.disks.length) return false; const disk=f.disks[f.disks.length-1]; const top=t.disks[t.disks.length-1]; if(top && top.size<disk.size) return false; return true; }
+  private highlight(tower:number){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(el) el.classList.add('drag-over'); }
+  private showTapTargets(from:number){
+    this.state.towers.forEach(t=>{
+      if(t.id===from) return;
+      const el=this.container.querySelector(`.tower[data-id='${t.id}']`) as HTMLElement | null; if(!el) return;
+      if(this.validMove(from,t.id)) el.classList.add('tap-target-valid'); else el.classList.add('tap-target-invalid');
+    });
+  }
+  private clearTapTargets(){ this.container.querySelectorAll('.tower').forEach(el=>el.classList.remove('tap-target-valid','tap-target-invalid')); }
+  private clearHighlights(){ this.container.querySelectorAll('.tower').forEach(el=>el.classList.remove('drag-over','invalid','tap-invalid','tap-target-valid','tap-target-invalid')); }
   private handleTap(tower:number){
     const now=Date.now(); if(now - this.lastTapTime < 120) return; this.lastTapTime=now;
     if(this.tapSel==null){
       if(this.state.towers[tower].disks.length){
         const picked=this.state.towers[tower].disks[this.state.towers[tower].disks.length-1];
-        this.tapSel=tower; this.highlight(tower); this.announce(`Picked disk ${picked.size} from tower ${tower+1}`);
+        this.tapSel=tower; this.highlight(tower); this.showTapTargets(tower); this.announce(`Picked disk ${picked.size} from tower ${tower+1}. Choose destination.`);
       } else { this.flashInvalid(tower,'No disk to pick'); }
     } else {
       if(this.tapSel===tower){ this.clearHighlights(); this.tapSel=null; this.announce('Selection cleared'); return; }
-      if(this.validMove(this.tapSel,tower)){
-        this.onMove(this.tapSel,tower);
+      const from=this.tapSel; const to=tower; const valid=this.validMove(from,to);
+      if(valid){
+        this.onMove(from,to);
         if(this.showTouchHelp){ this.showTouchHelp=false; document.getElementById('touch-help')?.remove(); }
-        this.announce(`Moved disk to tower ${tower+1}. Moves ${this.state.moves+1}`);
-      } else { this.flashInvalid(tower,'Invalid move'); }
-      this.tapSel=null; this.clearHighlights();
+        this.announce(`Moved disk to tower ${to+1}. Moves ${this.state.moves+1}`);
+      } else {
+        // Briefly emphasize invalid destination
+        const el=this.container.querySelector(`.tower[data-id='${to}']`) as HTMLElement | null; el?.classList.add('tap-target-invalid','tap-invalid');
+        this.flashInvalid(to,'Invalid move');
+      }
+      this.tapSel=null; this.clearHighlights(); this.clearTapTargets();
     }
   }
-  private highlight(tower:number){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(el) el.classList.add('drag-over'); }
-  private clearHighlights(){ this.container.querySelectorAll('.tower').forEach(el=>el.classList.remove('drag-over','invalid','tap-invalid')); }
   private flashInvalid(tower:number,msg:string){ const el=this.container.querySelector(`.tower[data-id='${tower}']`) as HTMLElement; if(!el) return; el.classList.add('tap-invalid'); this.announce(msg); setTimeout(()=>el.classList.remove('tap-invalid'),420); navigator.vibrate?.(40); }
   private announce(text:string){ const live=document.getElementById('live-region'); if(live){ live.textContent=''; setTimeout(()=>{ live.textContent=text; },40); } }
   private renderWin(optimal:number){ return `<div class="modal-backdrop"><div class="modal win"><button class="close-btn" id="close-win">✕</button><h3>Solved!</h3><div class="win-grid"><div class="win-item"><div class="win-label">Moves</div><div class="win-value">${this.state.moves}</div></div><div class="win-item"><div class="win-label">Optimal</div><div class="win-value">${optimal}</div></div></div><div class="modal-actions"><button class="btn btn-accent" id="again-btn">Play Again</button></div></div></div>`; }
