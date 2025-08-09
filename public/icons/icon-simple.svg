@@ -1,12 +1,26 @@
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128' width='128' height='128'>
-  <rect width='128' height='128' rx='28' fill='#000' stroke='#fff' stroke-width='6'/>
-  <rect x='20' y='94' width='88' height='10' rx='4' fill='#1a1a1a' stroke='#2e2e2e' stroke-width='2'/>
-  <rect x='34' y='38' width='6' height='56' rx='3' fill='#2e2e2e'/>
-  <rect x='61' y='38' width='6' height='56' rx='3' fill='#2e2e2e'/>
-  <rect x='88' y='38' width='6' height='56' rx='3' fill='#2e2e2e'/>
-  <g stroke='#fff' stroke-width='6' stroke-linecap='round'>
-    <line x1='32' y1='92' x2='76' y2='92'/>
-    <line x1='38' y1='80' x2='70' y2='80'/>
-    <line x1='44' y1='68' x2='64' y2='68'/>
+  <!-- Scaled 1/2 version of icon-mono to match style -->
+  <defs>
+    <linearGradient id='g-s' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0%' stop-color='#fff'/>
+      <stop offset='100%' stop-color='#c7c7c7'/>
+    </linearGradient>
+    <linearGradient id='pole-s' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0%' stop-color='#3a3a3a'/>
+      <stop offset='100%' stop-color='#1a1a1a'/>
+    </linearGradient>
+  </defs>
+  <rect width='128' height='128' rx='22' fill='#000' stroke='#fff' stroke-width='6'/>
+  <!-- Base -->
+  <rect x='20' y='96' width='88' height='10' rx='4' fill='#111' stroke='#2e2e2e' stroke-width='1.4'/>
+  <!-- Poles (scaled from 256 icon) -->
+  <rect x='40' y='38' width='6' height='58' rx='3' fill='url(#pole-s)'/>
+  <rect x='61' y='38' width='6' height='58' rx='3' fill='url(#pole-s)'/>
+  <rect x='82' y='38' width='6' height='58' rx='3' fill='url(#pole-s)'/>
+  <!-- Disks (stroke lines) -->
+  <g fill='none' stroke='url(#g-s)' stroke-width='4' stroke-linecap='round'>
+    <path d='M32 94h28'/>
+    <path d='M36 86h20'/>
+    <path d='M40 78h12'/>
   </g>
 </svg>
