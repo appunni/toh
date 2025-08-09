@@ -19,7 +19,7 @@ class App {
       (diskCount) => this.setDifficulty(diskCount)
     );
 
-    observeViewport(() => this.render());
+    observeViewport(() => { this.render(); });
 
     this.render();
   }

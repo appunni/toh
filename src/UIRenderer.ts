@@ -16,7 +16,7 @@ export class UIRenderer {
       <div class="header-group">
         <h1>Hanoi</h1>
         <select id="difficulty" aria-label="Select difficulty">
-          ${[3,4,5,6].map(n=>`<option value="${n}" ${state.towers[0].disks.length===n? 'selected':''}>${n} disks</option>`).join('')}
+          ${[3,4,5].map(n=>`<option value="${n}" ${state.towers[0].disks.length===n? 'selected':''}>${n} disks</option>`).join('')}
         </select>
       </div>
       <div class="header-group" role="group" aria-label="Stats and actions">
@@ -43,43 +43,54 @@ export class UIRenderer {
     const layout=document.documentElement.getAttribute('data-layout');
     this.state.towers.forEach(t=>{
       const towerEl=this.container.querySelector(`.tower[data-id='${t.id}']`) as HTMLElement; if(!towerEl) return;
-      const count=t.disks.length;
-      const isPortrait=layout==='mobilePortrait';
-      const towerH=towerEl.clientHeight || (isPortrait?200:300);
-      // Clear old
+      // clear previous
       towerEl.querySelectorAll('.disk').forEach(d=>d.remove());
-      // Portrait dynamic sizing
-      let baseOffset = isPortrait?34:50; // space above base
-      let diskH = isPortrait? (count>5?18:20):28;
-      const usable = towerH - baseOffset - diskH - (isPortrait?6:10); // reserve some top padding
-      let step = count>1 ? Math.floor(usable/Math.max(count-1,1)) : 0;
-      if(isPortrait){
-        step = Math.min(step, count>5?20:22); // cap
-        step = Math.max(step, 14); // floor so spacing stays readable
-      } else {
-        step = 26;
+      const count=t.disks.length;
+      const towerH=towerEl.clientHeight || 300;
+      const isPortrait=layout==='mobilePortrait';
+
+      // Determine base disk height for current orientation / viewport height
+      let diskH:number; if(isPortrait){ diskH = count>5?18:20; } else {
+        if(towerH < 190) diskH=18; else if(towerH<210) diskH=20; else if(towerH<240) diskH=22; else if(towerH<280) diskH=24; else diskH=28;
       }
-      // If still overflowing (top disk exceeds tower), compress further
+      let baseOffset = isPortrait ? 34 : 50; // vertical space from base for largest disk
+      // Reserve a little headroom at top
+      const headroom = isPortrait?6:12;
+      const usable = towerH - baseOffset - diskH - headroom;
+      let step = count>1 ? Math.floor(usable / (count-1)) : 0;
+
+      // Clamp step for readability / compression
+      if(isPortrait){
+        const maxPortraitStep = count>5?20:24; // allow slightly looser for <=5
+        step = Math.min(step, maxPortraitStep);
+        step = Math.max(step, 14); // readable minimum
+      } else {
+        step = Math.min(step, 32); // don't overspread
+        step = Math.max(step, Math.min(20, usable)); // keep minimum spacing
+      }
+
+      // If still overflowing adjust proportionally
       const needed = baseOffset + diskH + step*(count-1);
-      if(needed > towerH - 4){
-        const available = towerH - 4 - baseOffset;
+      if(needed > towerH - headroom){
+        const available = towerH - headroom - baseOffset;
         if(count>1){
-          step = Math.max(12, Math.floor((available - diskH)/(count-1)));
+          step = Math.max(10, Math.floor((available - diskH)/(count-1)));
         }
-        if(diskH + step*(count-1) > available){
-          // shrink disk height minimally
+        const afterSpacing = diskH + step*(count-1);
+        if(afterSpacing > available){
           diskH = Math.max(14, Math.floor(available - step*(count-1)));
         }
       }
+
       t.disks.forEach((d,i)=>{
         const top=i===t.disks.length-1;
-        const width=50 + d.size*26; // width unchanged
+        const width=50 + d.size*26; // unchanged width formula
         const bottom=baseOffset + i*step;
         const el=document.createElement('div');
         el.className='disk'+(top?' top':'');
         el.style.width=width+'px';
         el.style.bottom=bottom+'px';
-        if(isPortrait) el.style.height=diskH+'px';
+        el.style.height=diskH+'px'; // always set explicit height for consistency across orientation switches
         el.dataset.size=String(d.size); el.dataset.tower=String(t.id); el.textContent=String(d.size);
         el.setAttribute('role','button'); el.setAttribute('aria-label',`Disk size ${d.size}`); if(top && !touch) el.setAttribute('draggable','true');
         towerEl.appendChild(el);
@@ -139,4 +150,9 @@ export class UIRenderer {
   private announce(text:string){ const live=document.getElementById('live-region'); if(live){ live.textContent=''; setTimeout(()=>{ live.textContent=text; },40); } }
   private renderWin(optimal:number){ return `<div class="modal-backdrop"><div class="modal win"><button class="close-btn" id="close-win">✕</button><h3>Solved!</h3><div class="win-grid"><div class="win-item"><div class="win-label">Moves</div><div class="win-value">${this.state.moves}</div></div><div class="win-item"><div class="win-label">Optimal</div><div class="win-value">${optimal}</div></div></div><div class="modal-actions"><button class="btn btn-accent" id="again-btn">Play Again</button></div></div></div>`; }
   private renderRulesModal(){ return `<div class="modal-backdrop" id="rules-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="rules-title"><div class="modal"><button class="close-btn" id="close-rules" aria-label="Close help">✕</button><h2 id="rules-title">How to Play</h2><p>Goal: move all disks to the Destination tower.<br/>Tap a tower to pick its top disk, then tap another to place it. Larger disks cannot go on smaller ones. Complete it in the fewest moves (optimal shown above).</p><div class="modal-actions"><button class="btn btn-accent" id="rules-ok">Got it</button></div></div></div>`; }
+  public recalcForLayoutChange(){
+    // Recalculate disk sizing after orientation/layout attribute changes without rebuilding entire UI
+    if(!this.state.towers.length) return;
+    this.paintDisks(isTouch());
+  }
 }

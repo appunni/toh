@@ -24,8 +24,9 @@ export function observeViewport(callback:(layout:LayoutMode)=>void, options?:{ d
     const next = getLayoutMode();
     if (next !== last) {
       last = next;
-      callback(next);
+      // Ensure attribute is updated BEFORE callback so UI can read new layout
       document.documentElement.setAttribute('data-layout', next);
+      callback(next);
     }
   };
   const onResize = () => {
