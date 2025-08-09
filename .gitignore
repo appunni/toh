@@ -88,3 +88,6 @@ logs
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright MCP artifacts
+.playwright-mcp/
